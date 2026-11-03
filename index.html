@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Surdej">
+<title>Surdej</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#F3F2EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#181512" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F2EE; --surface:#FFFFFF; --sunk:#E9E7E1; --ink:#2B211B; --muted:#6B6158; --line:#DDD9D0;
+  --accent:#D9A23A; --accent-ink:#2B211B; --leaven:#55724F; --cold:#3F7393; --oven:#A63D2F;
+  --head:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#181512; --surface:#221E1A; --sunk:#2B2621; --ink:#EEE8E0; --muted:#A99E92; --line:#38322B;
+    --accent:#E2B04F; --accent-ink:#1E1914; --leaven:#90B188; --cold:#82B3D2; --oven:#E2826C;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#181512; --surface:#221E1A; --sunk:#2B2621; --ink:#EEE8E0; --muted:#A99E92; --line:#38322B;
+  --accent:#E2B04F; --accent-ink:#1E1914; --leaven:#90B188; --cold:#82B3D2; --oven:#E2826C;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3{font-family:var(--head);line-height:1.15;margin:0;letter-spacing:-.01em}
+h1{font-size:34px;font-weight:800}
+h2{font-size:22px;font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:.4em 0}
+small,.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+html,body{overflow-x:hidden}
+main{max-width:640px;margin:0 auto;padding:18px 16px 130px}
+main *{min-width:0}
+input[type="datetime-local"],input[type="time"]{-webkit-appearance:none;appearance:none;max-width:100%;display:block}
+.view{display:none}
+.view.on{display:block}
+section{margin:26px 0}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:8px 0 18px}
+.lede{color:var(--muted);margin-top:6px;max-width:34em}
+
+/* Tab bar */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;color:var(--muted);text-decoration:none;font-size:12px;position:relative}
+nav.tabs a .badge{position:absolute;top:5px;left:calc(50% + 8px);background:var(--oven);color:#fff;border-radius:9px;font-size:11px;font-weight:700;min-width:17px;height:17px;line-height:17px;text-align:center;padding:0 4px}
+nav.tabs a svg{width:25px;height:25px}
+nav.tabs a[aria-current="page"]{color:var(--ink);font-weight:700}
+nav.tabs a[aria-current="page"] svg{color:var(--accent)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:13px 18px;background:var(--accent);color:var(--accent-ink);font-weight:700;min-height:50px;text-decoration:none}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn.quiet{background:var(--sunk);color:var(--ink)}
+.btn.small{min-height:40px;padding:8px 14px;border-radius:11px;font-size:15px}
+.btn.wide{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chips .btn{flex:1 1 auto}
+.row > .btn{flex:1 1 auto}
+
+/* Now panel on home */
+.now{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;position:relative;overflow:hidden}
+.now .when{font-family:var(--head);font-size:52px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.now .what{font-size:21px;font-family:var(--head);font-weight:700;margin-top:10px}
+.kind-tag{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+.kind-tag i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.bar{height:6px;border-radius:3px;background:var(--sunk);margin:14px 0 4px;overflow:hidden}
+.bar b{display:block;height:100%;background:var(--leaven)}
+
+/* Quick actions */
+.quick{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.quick button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;min-height:88px}
+.quick button strong{font-family:var(--head);font-size:17px}
+.quick button span{font-size:14px;color:var(--muted);line-height:1.3}
+.quick .hero{grid-column:1/-1;background:var(--ink);color:var(--bg);border-color:var(--ink);padding:18px}
+.quick .hero span{color:inherit;opacity:.78}
+.quick .hero strong{font-size:21px}
+
+/* Lists */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.list > *{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.list > *:last-child{border-bottom:0}
+.list .grow{flex:1;min-width:0}
+.list .chev{color:var(--muted)}
+
+/* Fields */
+.fields{display:grid;gap:14px}
+.field label{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+.field small{display:block;margin-top:4px;font-size:14px;line-height:1.35}
+.stepper{display:flex;align-items:stretch;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+.stepper button{width:46px;flex:none;border:0;background:var(--sunk);font-size:24px;font-weight:700;color:var(--ink)}
+.stepper input{flex:1;min-width:0;border:0;background:transparent;text-align:center;font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;padding:10px 0}
+.stepper .unit{align-self:center;color:var(--muted);padding-right:10px;font-size:16px}
+select,input[type="datetime-local"],input[type="time"],textarea,.plain{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;font-size:17px;min-height:50px}
+textarea{min-height:90px;resize:vertical}
+.seg{display:flex;flex-wrap:wrap;background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1 1 auto;min-width:auto;border:0;background:transparent;border-radius:11px;padding:8px 10px;font-weight:700;font-size:15px;line-height:1.2;color:var(--muted);min-height:44px;white-space:nowrap}
+.seg button small{display:block;font-weight:500;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(43,33,27,.18)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+
+/* Result sheet */
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:6px 16px}
+.sheet .line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+.sheet .line:last-child{border-bottom:0}
+.sheet .line b{font-family:var(--head);font-size:22px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sheet .line.total b{font-size:18px;color:var(--muted)}
+.note{background:var(--sunk);border-radius:16px;padding:14px 16px;font-size:16px}
+.note strong{font-family:var(--head)}
+.warn{border-left:4px solid var(--oven);background:var(--sunk);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:16px}
+.ok{border-left:4px solid var(--leaven);background:var(--sunk);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:16px}
+
+/* Timeline */
+.tl{position:relative;margin:16px 0}
+.st{display:grid;grid-template-columns:58px 22px minmax(0,1fr);column-gap:8px;position:relative}
+.st .t{text-align:right;padding-top:1px}
+.st .t b{display:block;font-family:var(--head);font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.st .t small{font-size:12px;display:block;line-height:1.2}
+.st .rail{position:relative;display:flex;justify-content:center}
+.st .rail::before{content:"";position:absolute;top:0;bottom:0;width:3px;background:var(--line);border-radius:2px}
+.st:first-child .rail::before{top:10px}
+.st .dot{position:relative;width:18px;height:18px;border-radius:50%;margin-top:3px;background:var(--surface);border:4px solid var(--c,var(--muted));z-index:1}
+.st.done .dot{background:var(--c)}
+.st .body{padding-bottom:20px;min-width:0}
+.st .body h3{font-size:17px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
+.st .dur{font-size:14px;color:var(--muted)}
+.st .x{font-size:15px;color:var(--muted);margin-top:3px}
+.st .subs{list-style:none;padding:0;margin:8px 0 0;font-size:15px}
+.st .subs li{display:flex;gap:10px;padding:3px 0}
+.st .subs li b{font-variant-numeric:tabular-nums;min-width:44px}
+.st.fridge .rail::before{background:repeating-linear-gradient(var(--cold) 0 6px,transparent 6px 11px);width:3px}
+.st.fridge .body{padding-bottom:34px}
+.st.fridge .fz{display:inline-block;background:color-mix(in srgb,var(--cold) 14%,transparent);color:var(--cold);border-radius:8px;padding:2px 8px;font-size:14px;font-weight:700;margin-top:6px}
+.st.cur .body h3::after{content:"nu";background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:1px 8px;font-size:13px;font-weight:700;flex:none}
+.st.done .body h3,.st.done .x{opacity:.55}
+.st .chk{flex:none;width:30px;height:30px;border-radius:9px;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;padding:0}
+.st.done .chk{background:var(--leaven);border-color:var(--leaven);color:var(--surface)}
+.st .night{font-size:13px;color:var(--oven);font-weight:700}
+.st.end .dot{border-color:var(--accent);background:var(--accent)}
+.st.end .rail::before{bottom:auto;height:10px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:50%}
+
+/* details */
+details{background:var(--surface);border:1px solid var(--line);border-radius:16px;margin:10px 0;overflow:hidden}
+details summary{list-style:none;padding:15px 16px;font-weight:700;font-family:var(--head);font-size:18px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"+";font-size:24px;color:var(--muted);font-weight:500;line-height:1}
+details[open] summary::after{content:"−"}
+details .dbody{padding:0 16px 16px}
+details ol,details ul{padding-left:22px;margin:6px 0}
+details li{margin:5px 0}
+
+/* Recipe */
+.rcp-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px}
+.ing{list-style:none;padding:0;margin:0}
+.ing li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.ing li b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.method{padding-left:24px}
+.method li{margin:10px 0}
+.back{background:none;border:0;padding:6px 0;color:var(--muted);font-weight:700;display:inline-flex;gap:6px;align-items:center}
+
+/* Timer pill */
+#timerPill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:25;background:var(--ink);color:var(--bg);border:0;border-radius:30px;padding:10px 18px;font-weight:700;display:none;align-items:center;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#timerPill.on{display:inline-flex}
+#timerPill.ring{background:var(--oven);color:#fff;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:translateX(-50%) scale(1.05)}}
+@media (prefers-reduced-motion:reduce){#timerPill.ring{animation:none}}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:40;background:rgba(20,15,10,.5);display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.modal .box input,.modal .box .field,.modal .box .fields,.modal .box .two>*{min-width:0}
+.modal .box{overflow-x:hidden;background:var(--bg);width:100%;max-width:640px;border-radius:22px 22px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto}
+.stars{display:flex;gap:6px}
+.stars button{flex:1;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;font-size:22px;min-height:50px}
+.stars button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top,0px));background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;z-index:50;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.mini{font-size:14px}
+hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+/* Inventory */
+.inv{background:var(--surface);border:1px solid var(--line);border-radius:18px;margin:10px 0;overflow:hidden}
+.inv .hd{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.inv .hd .grow{flex:1;min-width:0}
+.inv .kg{font-family:var(--head);font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;text-align:right}
+.inv .kg small{font-size:14px;font-weight:500}
+.inv .lvl{height:5px;background:var(--sunk);margin:0 16px 12px;border-radius:3px;overflow:hidden}
+.inv .lvl b{display:block;height:100%;background:var(--leaven)}
+.inv.low .lvl b{background:var(--oven)}
+.inv .acts{display:flex;gap:8px;padding:0 16px 14px;flex-wrap:wrap}
+.tag{display:inline-block;border-radius:8px;padding:1px 8px;font-size:13px;font-weight:700}
+.tag.low{background:color-mix(in srgb,var(--oven) 16%,transparent);color:var(--oven)}
+.tag.ord{background:color-mix(in srgb,var(--cold) 16%,transparent);color:var(--cold)}
+.tag.unk{background:var(--sunk);color:var(--muted)}
+.shops{border-top:1px dashed var(--line);padding:6px 16px 14px}
+.shop{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);color:var(--ink);text-decoration:none}
+.shop:last-of-type{border-bottom:0}
+.shop .grow{flex:1;min-width:0}
+.shop b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.shop.best .grow strong::after{content:"Bedste kg-pris";margin-left:8px;background:var(--accent);color:var(--accent-ink);border-radius:7px;padding:1px 7px;font-size:12px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.facts div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.facts b{display:block;font-family:var(--head);font-size:17px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.facts small{font-size:13px}
+.blk{margin-top:14px}
+.blk h3{margin-bottom:6px}
+</style>
+</head>
+<body>
+<main>
+
+<!-- HJEM -->
+<div class="view" id="v-hjem">
+  <div class="top"><div><h1 id="greet">Surdej</h1><p class="lede" id="greetSub"></p></div></div>
+  <div id="homeStarter"></div>
+  <div id="homeNow"></div>
+  <section>
+    <div class="quick" id="quick"></div>
+  </section>
+  <section>
+    <h2>Værktøjer</h2>
+    <div class="list" style="margin-top:10px">
+      <button data-act="timerSheet"><span class="grow"><strong>Timer</strong><br><small>Til stræk og fold, bagning og hvile</small></span><span class="chev">›</span></button>
+      <button data-act="waterSheet"><span class="grow"><strong>Vandtemperatur</strong><br><small>Ram den perfekte dejtemperatur</small></span><span class="chev">›</span></button>
+      <button data-act="go" data-to="surdej" data-open="fejl"><span class="grow"><strong>Fejlfinding</strong><br><small>Fladt brød, tæt krumme, sur lugt</small></span><span class="chev">›</span></button>
+      <button data-act="backup"><span class="grow"><strong>Sikkerhedskopi</strong><br><small>Gem eller hent dine data som fil</small></span><span class="chev">›</span></button>
+      <button data-act="wake"><span class="grow"><strong>Hold skærmen tændt</strong><br><small id="wakeTxt">Praktisk med mel på fingrene</small></span><span class="chev" id="wakeState">Fra</span></button>
+    </div>
+  </section>
+  <section id="logSec"></section>
+</div>
+
+<!-- SURDEJ -->
+<div class="view" id="v-surdej">
+  <div class="top"><div><h1>Surdejen</h1><p class="lede">Hold styr på fodringer, og se hvornår den topper.</p></div></div>
+  <div id="nsSec"></div>
+  <div id="starterStatus"></div>
+  <section>
+    <h2>Fodringsberegner</h2>
+    <p class="muted">Hvor meget aktiv surdej skal du bruge?</p>
+    <div class="fields" style="margin-top:12px">
+      <div class="two">
+        <div class="field"><label for="fNeed">Behov</label><div class="stepper"><button data-act="step" data-k="feed.need" data-d="-10" aria-label="Mindre">−</button><input id="fNeed" inputmode="numeric" data-bind="feed.need"><span class="unit">g</span><button data-act="step" data-k="feed.need" data-d="10" aria-label="Mere">+</button></div></div>
+        <div class="field"><label for="fTemp">Køkken</label><div class="stepper"><button data-act="step" data-k="feed.temp" data-d="-1" aria-label="Koldere">−</button><input id="fTemp" inputmode="numeric" data-bind="feed.temp"><span class="unit">°C</span><button data-act="step" data-k="feed.temp" data-d="1" aria-label="Varmere">+</button></div></div>
+      </div>
+      <div class="field"><label>Forhold (surdej : mel : vand)</label><div class="seg" id="ratioSeg"></div><small>Højere tal = langsommere og mildere. 1:2:2 er en god hverdagsfodring.</small></div>
+    </div>
+    <div id="feedOut" style="margin-top:14px"></div>
+  </section>
+  <section>
+    <h2>Den optimale surdej</h2>
+    <div class="note" style="margin-top:10px">
+      <p><strong>Kort fortalt:</strong> 80 % hvedemel og 20 % fuldkornsrug, lige dele vand (100 % hydrering), fodret 1:2:2 og holdt ved 24–26 °C. Brug den når den er fordoblet med hvælvet top, typisk 5–6 timer efter fodring.</p>
+    </div>
+    <details><summary>Vedligehold i hverdagen</summary><div class="dbody">
+      <ul>
+        <li><b>Bager du ugentligt:</b> Opbevar i køleskab. Fodr 1:5:5 én gang om ugen.</li>
+        <li><b>Før bagning:</b> Tag den ud og fodr 1:2:2 én gang (eller to gange hvis den har stået over en uge).</li>
+        <li><b>Bager du hver dag:</b> Lad den stå på køkkenbordet og fodr 1:5:5 morgen og aften.</li>
+        <li>Gem kun 20–50 g. Resten (discard) kan bruges i pandekager eller knækbrød.</li>
+        <li>Et lag grå væske på toppen betyder sult. Hæld det fra og fodr.</li>
+      </ul>
+    </div></details>
+    <details><summary>Er den klar til brug?</summary><div class="dbody">
+      <ul>
+        <li>Mindst fordoblet i volumen, med bobler hele vejen ned gennem glasset.</li>
+        <li>Toppen er hvælvet eller lige begyndt at flade ud.</li>
+        <li>Duften er syrlig-frisk som yoghurt, ikke skarp som neglelak.</li>
+        <li>Flydetesten (en skefuld i vand) er et hint, ikke en garanti – især ikke for surdej med meget fuldkorn.</li>
+      </ul>
+      <p>Sæt en elastik om glasset ved fodring, så er det let at se hvor meget den hæver.</p>
+    </div></details>
+    <details><summary>Rugsurdej til rugbrød</summary><div class="dbody">
+      <p>Den klassiske danske metode: gem 150 g af rugbrødsdejen, før du tilsætter salt, i et glas i køleskabet. Den holder 2–3 uger. Du kan også lave en ren rugsurdej ved at fodre din surdej med fuldkornsrug i stedet for hvede et par gange.</p>
+    </div></details>
+    <details id="fejl"><summary>Fejlfinding</summary><div class="dbody" id="troubles"></div></details>
+  </section>
+  <section id="feedLog"></section>
+</div>
+
+<!-- BRØD -->
+<div class="view" id="v-brod">
+  <div class="top"><div><h1>Brød og boller</h1><p class="lede">Opskrifter og beregner. Alt regnes i bagerprocenter ud fra melmængden.</p></div></div>
+  <div class="seg" id="brodSeg">
+    <button data-act="brodMode" data-m="rcp">Opskrifter</button>
+    <button data-act="brodMode" data-m="bread">Beregn brød</button>
+    <button data-act="brodMode" data-m="buns">Beregn boller</button>
+  </div>
+  <div id="brodBody" style="margin-top:18px"></div>
+</div>
+
+<!-- PIZZA -->
+<div class="view" id="v-pizza">
+  <div class="top"><div><h1>Pizza</h1><p class="lede">Til pizzaovnen: napolitansk, med fordej eller New York-style.</p></div></div>
+  <div class="seg" id="pzSeg">
+    <button data-act="pzMode" data-m="styles">Stilarter</button>
+    <button data-act="pzMode" data-m="calc">Beregner</button>
+    <button data-act="pzMode" data-m="oven">Ovn og tips</button>
+  </div>
+  <div id="pzBody" style="margin-top:18px"></div>
+</div>
+
+<!-- PLAN -->
+<div class="view" id="v-plan">
+  <div class="top"><div><h1>Plan</h1><p class="lede" id="planLede">Vælg hvornår du starter, og hvornår det skal være klar. Køleskabet tager tiden imellem.</p></div></div>
+  <div id="planBody"></div>
+</div>
+
+<!-- MEL -->
+<div class="view" id="v-mel">
+  <div class="top"><div><h1>Mel</h1><p class="lede">Din beholdning. Træk mel fra i beregnerne, så siger appen til, når noget skal købes.</p></div></div>
+  <div id="melBody"></div>
+</div>
+
+</main>
+
+<button id="timerPill" data-act="timerSheet"></button>
+
+<nav class="tabs" aria-label="Menu"><div class="in">
+  <a href="#hjem" data-tab="hjem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg>Hjem</a>
+  <a href="#surdej" data-tab="surdej"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h10"/><path d="M8 3.5v2.5c-1.8.9-3 2.6-3 4.6V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-8.4c0-2-1.2-3.7-3-4.6V3.5"/><path d="M5 13c2 1 4 1 7 0s5-1 7 0"/><circle cx="10" cy="16.5" r=".8"/><circle cx="14.5" cy="17.5" r=".8"/></svg>Surdej</a>
+  <a href="#brod" data-tab="brod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15c0-5 3.6-9 8-9s8 4 8 9v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/><path d="M9 9.5l1.5 2M12.5 8.5l1.2 2.2M16 10l.8 1.6"/></svg>Brød</a>
+  <a href="#pizza" data-tab="pizza"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="6"/><circle cx="10" cy="10" r="1"/><circle cx="14.5" cy="11.5" r="1"/><circle cx="11" cy="14.5" r="1"/></svg>Pizza</a>
+  <a href="#plan" data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9.5 2.5h5"/></svg>Plan</a>
+  <a href="#mel" data-tab="mel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7.5 7.5 4h9L18 7.5"/><path d="M6 7.5c-.8 3-.8 9 0 12.5h12c.8-3.5.8-9.5 0-12.5z"/><path d="M9.5 12.5c1.5-1 3.5-1 5 0M9.5 15.5c1.5-1 3.5-1 5 0"/></svg>Mel<span class="badge" id="melBadge" hidden></span></a>
+</div></nav>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- helpers ---------- */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const MIN = 60000, HOUR = 3600000;
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+const hm = t => { const d=new Date(t); return pad(d.getHours())+":"+pad(d.getMinutes()); };
+const dayKey = t => { const d=new Date(t); return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate(); };
+const DAYS = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
+function dayLabel(t){
+  const d=new Date(t), n=new Date();
+  const a=new Date(d.getFullYear(),d.getMonth(),d.getDate()), b=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+  const diff=Math.round((a-b)/86400000);
+  if(diff===0) return "i dag"; if(diff===1) return "i morgen"; if(diff===-1) return "i går";
+  return DAYS[d.getDay()];
+}
+function dur(min){
+  min=Math.round(min); if(min<0) min=0;
+  const h=Math.floor(min/60), m=min%60;
+  if(h&&m) return h+" t "+m+" min"; if(h) return h+" t"; return m+" min";
+}
+function untilTxt(ms){ return ms<=0 ? "nu" : "om "+dur(ms/MIN); }
+const toLocalInput = t => { const d=new Date(t); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes()); };
+const round5 = t => Math.ceil(t/(5*MIN))*5*MIN;
+function at(daysAhead,h,m){ const d=new Date(); d.setDate(d.getDate()+daysAhead); d.setHours(h,m,0,0); return d.getTime(); }
+const g = n => Math.round(n);
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"),1800); }
+
+/* ---------- fermentation model ---------- */
+// Time multiplier relative to 24 °C (halves/doubles roughly every 7 °C)
+const F = T => Math.pow(2,(24-Math.min(32,Math.max(14,T)))/7);
+const PEAK = {1:4,2:5.5,5:8,10:11}; // hours at 24 °C
+const peakMin = (ratio,T) => Math.round(PEAK[ratio]*60*F(T));
+
+/* ---------- flour inventory + prices ---------- */
+const INV_DEFAULT=[
+  {key:"caputo-pizzeria",name:"Caputo Pizzeria (blå)",cat:"pizza",kg:null,min:2,pack:5,q:"Caputo Pizzeria mel"},
+  {key:"caputo-saccorosso",name:"Caputo Saccorosso / Cuoco (rød)",cat:"pizza",kg:null,min:2,pack:5,q:"Caputo Saccorosso Cuoco mel"},
+  {key:"caputo-nuvola",name:"Caputo Nuvola Super",cat:"pizza",kg:null,min:1,pack:5,q:"Caputo Nuvola Super"},
+  {key:"semola",name:"Semola rimacinata (til spaden)",cat:"pizza",kg:null,min:0.5,pack:1,q:"Caputo semola rimacinata"},
+  {key:"hvedemel",name:"Hvedemel, fintsigtet",cat:"brod",kg:null,min:2,pack:5,q:"økologisk hvedemel fintsigtet 5 kg"},
+  {key:"fuldkornshvede",name:"Fuldkornshvedemel",cat:"brod",kg:null,min:1,pack:5,q:"fuldkornshvedemel økologisk"},
+  {key:"rugmel",name:"Fuldkornsrugmel (til surdejen)",cat:"brod",kg:null,min:1,pack:1,q:"fuldkornsrugmel økologisk"},
+  {key:"ølandshvede",name:"Ølandshvedemel",cat:"brod",kg:null,min:1,pack:5,q:"ølandshvedemel"},
+  {key:"fuldkornsspelt",name:"Fuldkornsspelt",cat:"brod",kg:null,min:0.5,pack:1,q:"fuldkornsspeltmel"},
+  {key:"grahamsmel",name:"Grahamsmel",cat:"brod",kg:null,min:0.5,pack:1,q:"grahamsmel økologisk"},
+  {key:"manitoba",name:"Manitoba (stærkt mel)",cat:"brod",kg:null,min:1,pack:5,q:"manitoba mel"},
+  {key:"maltmel",name:"Maltmel",cat:"brod",kg:null,min:0.1,pack:0.5,q:"aktivt maltmel"}
+];
+const PRICE_DATE="29. oktober 2026";
+// Snapshot of prices found online. size in kg; price in kr; from = "fra"-pris when size is unknown.
+const PRICES={
+  "caputo-pizzeria":[
+    {shop:"Vild med Vin",size:5,price:89,url:"https://www.vildmedvin.dk/specialiteter/brands-a-l/caputo-mel",note:"Levering 1–2 dage"},
+    {shop:"Pizzanørderi",size:5,price:99.95,url:"https://pizzanoerderi.dk/product/caputo-pizzeria/"},
+    {shop:"PriceRunner – 25 kg sæk",size:25,price:293,url:"https://www.pricerunner.dk/sp/caputo-r%C3%B8d.html",note:"Laveste 25 kg-pris i sammenligningen"},
+    {shop:"Zelected Foods",size:1,price:25.95,url:"https://zelectedfoods.dk/vare/caputo-pizzeria-tipo-00-pizzamel/"},
+    {shop:"Pizzafredag",from:29,url:"https://pizzafredag.dk/produkt/caputo-pizzeria/",note:"1, 5 og 25 kg · fri fragt til pakkeshop over 599 kr"},
+    {shop:"Adlers Madværksted",from:29,url:"https://adlersmadvaerksted.dk/mel-specialiteter-236/caputo-pizzeria-mel-blaa-25-kg-p1042",note:"1, 5, 15 og 25 kg · fri fragt over 799 kr (max 20 kg)"},
+    {shop:"PizzaPal",from:29,url:"https://pizzapal.dk/products/caputo-pizzeria",note:"1, 5 og 15 kg"}],
+  "caputo-saccorosso":[
+    {shop:"Vild med Vin",size:5,price:89,url:"https://www.vildmedvin.dk/specialiteter/brands-a-l/caputo-mel",note:"Tilbudspris"},
+    {shop:"Pizzafredag",from:29,url:"https://pizzafredag.dk/produkt/caputo-cuoco/",note:"1, 5 og 25 kg · fri fragt til pakkeshop over 599 kr"}],
+  "caputo-nuvola":[
+    {shop:"Adlers Madværksted",size:5,price:129,url:"https://adlersmadvaerksted.dk/shop/48-mel-og-specialiteter/971-caputo-nuvola-super/",note:"5 og 25 kg"},
+    {shop:"Vild med Vin – Nuvola 1 kg",size:1,price:35,url:"https://www.vildmedvin.dk/specialiteter/brands-a-l/caputo-mel",note:"Almindelig Nuvola"}],
+  "hvedemel":[
+    {shop:"Skærtoft Mølle",size:5,price:128,url:"https://skaertoft.dk/vare/hvedemel-oekologisk-fintsigtet/",note:"Økologisk, stenkværnet"},
+    {shop:"Skærtoft Mølle",size:1,price:27,url:"https://skaertoft.dk/vare/hvedemel-oekologisk-fintsigtet/"},
+    {shop:"Mejnerts",from:31.95,url:"https://mejnerts.dk/koeb-oekologisk-mel/",note:"Fri fragt til pakkeshop over 599 kr"}],
+  "fuldkornshvede":[
+    {shop:"Skærtoft Mølle",size:5,price:119,url:"https://skaertoft.dk/vare/hvedemel-oekologisk-fuldkorn/",note:"Økologisk"},
+    {shop:"Skærtoft Mølle",size:1,price:25,url:"https://skaertoft.dk/vare/hvedemel-oekologisk-fuldkorn/"}],
+  "rugmel":[
+    {shop:"Mejnerts – rugmel sigtet",from:27.95,url:"https://mejnerts.dk/shop/mel-oekologisk/rug/rugmel-sigtet-oekologisk/"},
+    {shop:"Vild Hvede – Borris rugmel",from:64,url:"https://vildhvede.com/kobmel",note:"Friskmalet hver uge"}],
+  "ølandshvede":[
+    {shop:"Skærtoft Mølle – fuldkorn",size:5,price:137.75,url:"https://skaertoft.dk/vare/oelandshvedemel-oekologisk-fuldkorn/"},
+    {shop:"Skærtoft Mølle – fuldkorn",size:1,price:29,url:"https://skaertoft.dk/vare/oelandshvedemel-oekologisk-fuldkorn/"},
+    {shop:"Mejnerts – sigtet",from:38.95,url:"https://mejnerts.dk/shop/mel-oekologisk/oelandshvede/oelandshvedemel-sigtet-oekologisk/"}],
+  "manitoba":[
+    {shop:"Skærtoft – Surdejspakken",from:null,url:"https://skaertoft.dk/vare/surdejspakken/",note:"Hvede, rug, 2 kg Manitoba og Ølandshvede i én pakke"}]
+};
+
+/* ---------- pizza styles ---------- */
+const PIZZAS=[
+  {id:"napoletana",name:"Napoletana klassisk",sub:"Tynd midte, luftig leopardplettet kant. Bages på 60–90 sek.",oven:"430–480 °C",bake:"60–90 sek.",
+   calc:{diam:30,thick:"napoletana",weight:250,hyd:62,salt:2.8,oil:0,sugar:0,yt:"frisk",yeast:0.2,method:"24",pf:"direkte",flour:"caputo-pizzeria"},plan:"cold",
+   method:["Opløs salt i koldt vand (ca. 18 °C). Smuldr gæren i.","Tilsæt melet gradvist og ælt 15–20 min til dejen er glat og elastisk. Hvil 15 min, ælt kort igen.","Lad dejen hæve samlet 2 t ved stuetemperatur (puntata), dækket.","Del og form stramme kugler à 250 g (staglio). Læg dem i en hævekasse med god afstand.","Koldhæv 24–48 t ved 4–5 °C.","Tag kuglerne ud 3–4 t før bagning, så de er stuetempererede og afslappede.","Tryk dejen ud fra midten mod kanten med fingrene – aldrig kagerulle. Lad 1,5–2 cm kant være urørt.","Top let og bag 60–90 sek. Drej pizzaen hvert 15.–20. sekund."]},
+  {id:"napoletana-surdej",name:"Napoletana med surdej",sub:"Mere dybde og syrlighed. Langsom og forgivende dej.",oven:"430–480 °C",bake:"60–90 sek.",
+   calc:{diam:30,thick:"napoletana",weight:260,hyd:63,salt:2.8,oil:0,sugar:0,yt:"surdej",yeast:10,method:"24",pf:"direkte",flour:"caputo-pizzeria"},plan:"cold",
+   method:["Brug surdejen 4–6 t efter fodring, når den er lige ved toppen.","Rør surdejen ud i vandet, tilsæt mel og ælt 10 min. Tilsæt salt og ælt 5–8 min mere.","Puntata 3–4 t ved stuetemperatur – surdej er langsommere end gær.","Form kugler à 260 g. Koldhæv 24–36 t.","Tag ud 4 t før bagning. Kuglerne skal være tydeligt hævede og bløde.","Bag som klassisk napolitansk."]},
+  {id:"canotto",name:"Contemporanea med poolish",sub:"Den moderne, høje og hule kant (canotto). Høj hydrering.",oven:"420–450 °C",bake:"70–90 sek.",
+   calc:{diam:30,thick:"canotto",weight:270,hyd:70,salt:2.8,oil:0,sugar:0,yt:"frisk",yeast:0.15,method:"same",pf:"poolish",pfPct:40,flour:"caputo-nuvola"},plan:"poolish",
+   method:["Aftenen før: Rør poolish af lige dele mel og vand med en lille smule gær. Dæk og lad stå 12–16 t ved 18–20 °C, til den bobler og lige begynder at falde.","Næste dag: Rør poolish ud med resten af vandet (hold 50 g tilbage). Tilsæt mel og ælt 8 min.","Tilsæt salt og derefter resten af vandet lidt ad gangen (bassinage), til dejen er blank.","Puntata 1 t, form kugler à 270 g, og lad dem hæve 4–6 t ved stuetemperatur.","Tryk luften fra midten ud i kanten, så kanten bliver høj. Bag lidt køligere end klassisk."]},
+  {id:"biga",name:"Pizza med biga",sub:"Tør fordej, der giver kompleks smag og en sprød, let bund.",oven:"420–460 °C",bake:"70–90 sek.",
+   calc:{diam:30,thick:"napoletana",weight:260,hyd:68,salt:2.8,oil:0,sugar:0,yt:"frisk",yeast:0.1,method:"same",pf:"biga",pfPct:50,flour:"caputo-saccorosso"},plan:"biga",
+   method:["Dagen før: Bland biga – mel, 45 % vand og 1 % gær – kun til det er klumpet. Ingen æltning. Dæk til, 16–24 t ved 16–18 °C.","Bryd bigaen i stykker, tilsæt det meste af vandet og resten af melet. Ælt 8–10 min.","Tilsæt salt og resten af vandet gradvist.","Puntata 1 t, form kugler, hæv 4–5 t."]},
+  {id:"newyork",name:"New York-style",sub:"Stor, sprød og foldbar. Lidt sukker giver farve i en køligere ovn.",oven:"300–330 °C",bake:"4–6 min.",
+   calc:{diam:32,thick:"ny",weight:300,hyd:64,salt:2,oil:0,sugar:1.5,yt:"tor",yeast:0.3,method:"48",pf:"direkte",flour:"caputo-saccorosso"},plan:"cold",
+   method:["Bland mel, sukker og gær. Tilsæt koldt vand og ælt 5 min. Tilsæt salt og ælt til glat dej.","Form kugler à 300 g (ca. 32 cm pizza) med det samme og læg dem i bokse drysset med semola.","Koldhæv 48–72 t – det giver smag og den karakteristiske tygge.","Tag ud 2 t før. Stræk ud til en tynd bund med en lidt kraftigere kant.","Skru ned for flammen, så stenen er ca. 300 °C. Bag 4–6 min og drej undervejs.","Lav-fugtig mozzarella og en kogt, krydret tomatsauce er klassisk."]},
+  {id:"hurtig",name:"Samme dag",sub:"Napolitansk dej fra morgen til aften – 8–10 timer.",oven:"430–480 °C",bake:"60–90 sek.",
+   calc:{diam:30,thick:"napoletana",weight:250,hyd:63,salt:2.8,oil:0,sugar:0,yt:"frisk",yeast:0.4,method:"same",pf:"direkte",flour:"caputo-pizzeria"},plan:"same",
+   method:["Ælt som klassisk napolitansk, men med lidt mere gær.","Puntata 2 t, form kugler, og lad dem hæve 6–8 t ved stuetemperatur.","Er køkkenet varmt (over 24 °C), så sænk gæren til 0,25 %."]}
+];
+const FLOURS={"caputo-pizzeria":"Caputo Pizzeria","caputo-saccorosso":"Caputo Saccorosso / Cuoco","caputo-nuvola":"Caputo Nuvola Super","manitoba":"Manitoba","hvedemel":"Hvedemel"};
+const DDT={bread:25,buns:25,pizza:23,feed:27,poolish:20};
+function waterFor(ddt,withLev,K,fr){
+  K=K==null?state.feed.temp:K; fr=fr==null?state.water.fric:fr;
+  const t=withLev?4*ddt-3*K-fr:3*ddt-2*K-fr;
+  return Math.round(Math.min(38,Math.max(4,t)));
+}
+const NS_DAYS=[
+  {t:"Dag 1 · Bland",tasks:["Bland 50 g fuldkornsrugmel og 50 g vand (ca. {W} °C) i et rent glas.","Rør godt, skrab siderne ned og læg låget løst på.","Sæt en elastik om glasset ud for overfladen.","Stil glasset et lunt sted, gerne 24–26 °C."],expect:"Der sker ikke noget synligt i dag. Mikroberne i melet er ved at vågne."},
+  {t:"Dag 2 · Vent",tasks:["Rør rundt om morgenen.","Rør rundt om aftenen."],expect:"Måske et par små bobler, måske ingenting. Begge dele er helt normalt."},
+  {t:"Dag 3 · Første fodring",tasks:["Kassér alt undtagen 50 g.","Tilsæt 25 g fuldkornsrug, 25 g hvedemel og 50 g vand (ca. {W} °C). Rør godt.","Flyt elastikken ned til den nye overflade."],expect:"Ofte meget aktivitet og en skarp lugt – nogle gange af ost. Det er bakterier, ikke den gær du vil have. Endnu."},
+  {t:"Dag 4 · Fodring",tasks:["Kassér alt undtagen 50 g.","Fodr med 25 g rug, 25 g hvede og 50 g vand (ca. {W} °C)."],expect:"Aktiviteten falder ofte helt. Rolig – den er ikke død. Det er her, de fleste giver op for tidligt."},
+  {t:"Dag 5 · To fodringer",tasks:["Morgen: Behold 25 g. Fodr med 25 g rug, 25 g hvede og 50 g vand (ca. {W} °C).","Aften: Samme fodring igen."],expect:"Den begynder at hæve igen og dufter mere friskt syrligt, som yoghurt."},
+  {t:"Dag 6 · To fodringer",tasks:["Morgen: Behold 25 g. Fodr med 25 g rug, 25 g hvede og 50 g vand (ca. {W} °C).","Aften: Samme fodring igen. Kig på elastikken."],expect:"Den bør hæve tydeligt, gerne 50–100 %, inden for 6–10 timer."},
+  {t:"Dag 7 · Klar-test",tasks:["Morgen: Behold 25 g. Fodr 1:2:2 med 40 g hvedemel, 10 g rug og 50 g vand (ca. {W} °C).","Hold øje med elastikken de næste 4–8 timer."],expect:"Fordobler den sig inden for 4–8 timer, med hvælvet top og bobler hele vejen ned? Så er den klar.",test:true},
+  {t:"Ekstra dag · Giv den tid",tasks:["Morgen: Behold 25 g. Fodr 1:2:2 med 40 g hvede, 10 g rug og 50 g vand (ca. {W} °C).","Aften: Samme fodring igen.","Stil den lunere hvis du kan, gerne 26 °C – fx i ovnen med lyset tændt og lågen på klem."],expect:"Det er helt normalt, at det tager 10–14 dage. Fortsæt til den fordobler sig inden for 4–8 timer.",test:true}
+];
+const SHAPES={
+  bread:[["Rund hævekurv 20 cm",750],["Rund hævekurv 22 cm",900],["Rund hævekurv 25 cm",1100],["Aflang hævekurv 25 cm",800],["Aflang hævekurv 30 cm",1000],["Aflang hævekurv 35 cm",1300],["Brødform 1 liter",750],["Brødform 1,5 liter",1100],["Brødform 2 liter",1400],["Bâtard til 2–3 personer",500],["Baguette",350]],
+  buns:[["Miniboller",50],["Hotdogbrød",70],["Morgenboller",80],["Grove boller",95],["Burgerboller",100],["Store sandwichboller",120]]
+};
+const THICK={napoletana:["Napolitansk",0.355],canotto:["Canotto (høj kant)",0.395],ny:["New York-style",0.37],tynd:["Tynd og sprød",0.28]};
+const pizzaW=(d,k)=>Math.round(Math.PI*(d/2)*(d/2)*k/5)*5;
+const pizzaD=(w,k)=>Math.round(2*Math.sqrt(w/(Math.PI*k)));
+const YEAST_SUGGEST={frisk:{same:0.4,"24":0.2,"48":0.12,"72":0.08},surdej:{same:20,"24":10,"48":6,"72":4}};
+
+/* ---------- state ---------- */
+const LS = "surdej-app-v1";
+function defaults(){
+  return {
+    updatedAt:0,
+    feeds:[],
+    feed:{need:100,temp:24,ratio:2},
+    bread:{count:1,weight:950,hyd:75,lev:20,salt:2,whole:20,wholeType:"fuldkornshvede",maltType:"none",malt:0,prep:null,prepMin:null},
+    buns:{count:12,weight:85,hyd:69,lev:25,salt:2,honey:0,oil:0,coarse:20,coarseType:"grahamsmel",liquid:"vand",maltType:"none",malt:0,prep:null,prepMin:null},
+    water:{ddt:25,room:21,flour:21,lev:24,fric:2},
+    pizza:{prep:null,prepMin:null,diam:30,thick:"napoletana",count:6,weight:260,hyd:62,salt:2.8,oil:0,sugar:0,yt:"frisk",yeast:0.2,method:"24",pf:"direkte",pfPct:40,flour:"caputo-pizzeria"},
+    inv:{items:INV_DEFAULT.map(x=>Object.assign({},x))},
+    plan:null,
+    ns:null,
+    mixer:"hand",
+    homeTime:"16:30",
+    log:[],
+    timer:null
+  };
+}
+function merge(s){ const d=defaults(); if(s&&s.inv&&!Array.isArray(s.inv.items)) delete s.inv; for(const k in s){ if(d[k]&&typeof d[k]==="object"&&!Array.isArray(d[k])&&s[k]&&typeof s[k]==="object") d[k]=Object.assign(d[k],s[k]); else d[k]=s[k]; } d.buns.honey=0; d.buns.oil=0; d.pizza.oil=0; d.buns.liquid="vand";
+  if(!d.inv.maltAdded){ if(!d.inv.items.some(x=>x.key==="maltmel")) d.inv.items.push(Object.assign({},INV_DEFAULT.find(x=>x.key==="maltmel"))); d.inv.maltAdded=true; }
+  return d; }
+let state = (()=>{ try{ const s=JSON.parse(localStorage.getItem(LS)||"null"); if(s) return merge(s);}catch(e){} return defaults(); })();
+let dbDoc=null, pushT=null;
+function save(){
+  state.updatedAt=Date.now();
+  try{ localStorage.setItem(LS,JSON.stringify(state)); }catch(e){}
+  clearTimeout(pushT); pushT=setTimeout(pushRemote,1200);
+}
+async function pushRemote(){ if(!dbDoc) return; try{ await dbDoc.set(JSON.parse(JSON.stringify(state))); }catch(e){} }
+(async()=>{
+  try{
+    if(!window.claude||!window.claude.use) return;
+    const [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
+    if(!db||!user) return;
+    const id=await user.id(); if(!id) return;
+    dbDoc=db.doc("data/users/"+id+"/state");
+    const snap=await dbDoc.get();
+    if(snap.exists){
+      const r=snap.data()||{};
+      if((r.updatedAt||0)>(state.updatedAt||0)){ state=merge(r); try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){} renderAll(); }
+      else if((state.updatedAt||0)>(r.updatedAt||0)) pushRemote();
+    } else if(state.updatedAt) pushRemote();
+  }catch(e){}
+})();
+
+/* ui-only */
+const ui = { tab:"hjem", calc:"rcp", recipe:null, mult:1, form:null, pz:"styles", pstyle:null, pcount:4, invOpen:-1 };
+
+/* ---------- recipes ---------- */
+const RECIPES = [
+  { id:"landbrod", type:"bread", name:"Landbrød", sub:"Klassisk hvedesurdejsbrød med sprød skorpe og åben krumme", yield:"1 brød", time:"Ca. 24 t inkl. nat i køl",
+    ing:[["Hvedemel (gerne Manitoba eller ølandshvede)",400,"g"],["Fuldkornshvedemel",100,"g"],["Vand, 27 °C",375,"g"],["Aktiv surdej",100,"g"],["Salt",10,"g"]],
+    method:["Rør mel og 350 g af vandet sammen. Hvil 45 min (autolyse).","Tilsæt surdej, salt og resten af vandet. Klem det ind med våde hænder i 3–4 min.","Hæv ved stuetemperatur 4–5 t. Lav 4 sæt stræk og fold med 30 min mellemrum i de første 2 timer.","Når dejen er hævet 50–75 % og bobler i siderne: vend ud, forform til en kugle, hvil 30 min.","Slutform stramt og læg i en melet hævekurv med sømmen opad. Dæk til.","Koldhæv i køleskabet 12–16 t.","Forvarm ovnen med en støbejernsgryde til 250 °C i 45 min.","Vend brødet ud på bagepapir, skær en snitte. Bag 20 min med låg, derefter 20–25 min uden låg ved 230 °C.","Afkøl på rist mindst 1 time før du skærer."],
+    tips:"Den lange koldhævning giver mere smag og gør dejen let at skære i. Mangler du en hævekurv, brug en skål med et melet viskestykke.",
+    calc:{hyd:75,lev:20,salt:2,whole:20,wholeType:"fuldkornshvede",weight:985,count:1}, plan:{recipe:"bread",variant:"cold"} },
+  { id:"spelt", type:"bread", name:"Grovt speltbrød", sub:"Nøddeagtig smag, lidt tættere krumme og hurtigere hævning", yield:"1 brød", time:"Ca. 20 t inkl. nat i køl",
+    ing:[["Lys spelt",350,"g"],["Fuldkornsspelt",150,"g"],["Vand, 26 °C",340,"g"],["Aktiv surdej",100,"g"],["Salt",10,"g"]],
+    method:["Bland alt undtagen salt. Hvil 30 min.","Tilsæt salt og ælt kort, kun 2–3 min – spelt tåler ikke lang æltning.","Hæv 3,5–4 t med 3 sæt stræk og fold de første 1,5 t. Spelt hæver hurtigere end hvede, så hold øje.","Form og læg i hævekurv. Koldhæv 10–14 t.","Bag som landbrød: 250 °C med låg i 20 min, 230 °C uden låg i 20 min."],
+    tips:"Spelt binder mindre vand end hvede. Start på 68 % hydrering, og gå først op når du kender dejen.",
+    calc:{hyd:68,lev:20,salt:2,whole:30,wholeType:"fuldkornsspelt",weight:950,count:1}, plan:{recipe:"bread",variant:"cold"} },
+  { id:"rugbrod", type:"rye", name:"Rugbrød med kerner", sub:"Dansk rugbrød over to dage – ingen æltning", yield:"1 form à 2 liter", time:"Ca. 1,5 døgn",
+    ing:[["Rugsurdej",150,"g"],["Lunkent vand",750,"g"],["Groft rugmel (dag 1)",500,"g"],["Knækkede rugkerner",250,"g"],["Solsikkekerner",100,"g"],["Hørfrø",60,"g"],["Groft rugmel (dag 2)",250,"g"],["Vand (dag 2)",200,"g"],["Salt (dag 2)",18,"g"],["Mørk sirup eller maltøl (valgfri)",40,"g"]],
+    method:["Dag 1: Udrør surdejen i vandet. Rør rugmel og kerner i. Dæk til og lad stå på køkkenbordet 12–18 t.","Dag 2: Rør rugmel og vand i. Tag 150 g dej fra i et glas – det er din surdej til næste gang. Stil den i køleskabet.","Rør salt og evt. sirup i resten. Fyld dejen i en smurt form og glat overfladen med en våd ske.","Hæv 3–5 t til overfladen får små revner, og dejen næsten når kanten.","Prik overfladen med en gaffel. Bag ved 170 °C i ca. 1 t 45 min, til kernetemperaturen er 98 °C.","Tag brødet ud af formen og afkøl på rist under et viskestykke. Skær helst først næste dag."],
+    tips:"Rugbrød er klart når en kødtermometer viser 98 °C i midten. Skær det for tidligt, bliver det klistret.",
+    calc:null, plan:{recipe:"rye",variant:"std"} },
+  { id:"morgenboller", type:"buns", name:"Morgenboller", sub:"Bløde, luftige boller koldhævet natten over", yield:"14 boller", time:"Bland i aften, bag i morgen",
+    ing:[["Hvedemel",480,"g"],["Grahamsmel",120,"g"],["Koldt vand",420,"g"],["Aktiv surdej",150,"g"],["Salt",12,"g"]],
+    method:["Bland vand og surdej. Tilsæt mel og ælt 8–10 min til dejen er smidig (eller 6 min i maskine).","Tilsæt salt og ælt videre til dejen slipper skålen.","Hæv 3–3,5 t ved stuetemperatur med 2 sæt stræk og fold efter 30 og 60 min.","Del i 14 stykker à ca. 85 g og form stramme boller. Sæt dem på en plade med bagepapir.","Dæk med film og stil i køleskabet 8–12 t.","Om morgenen: Tænd ovnen på 225 °C. Lad bollerne stå på bordet imens (30 min).","Pensl med vand og drys evt. med frø. Bag 15–18 min."],
+    tips:"Bollerne kan bages direkte fra køleskabet. Vil du have dem ekstra luftige, så lad dem stå 45–60 min på bordet i stedet for 30.",
+    calc:{count:14,weight:85,hyd:70,lev:25,salt:2,honey:0,oil:0,coarse:20,coarseType:"grahamsmel",liquid:"vand"}, plan:{recipe:"buns",variant:"evening"} },
+  { id:"havreboller", type:"buns", name:"Grove havreboller", sub:"Saftige boller med skoldede havregryn og frø", yield:"12 boller", time:"Bland i aften, form i morgen",
+    ing:[["Havregryn",75,"g"],["Kogende vand (til havregryn)",150,"g"],["Hvedemel",350,"g"],["Fuldkornshvedemel",100,"g"],["Koldt vand",220,"g"],["Aktiv surdej",120,"g"],["Salt",10,"g"],["Græskar- og solsikkekerner",60,"g"]],
+    method:["Hæld kogende vand over havregrynene og lad dem køle af (ca. 20 min).","Bland alt undtagen salt og kerner. Ælt 6–8 min.","Tilsæt salt og kerner og ælt til dejen hænger sammen. Den er lidt klistret – det skal den være.","Hæv 2 t ved stuetemperatur med 2 sæt stræk og fold. Dæk skålen og stil den i køleskabet natten over.","Om morgenen: Vend den kolde dej ud og form 12 boller. Kold dej er nem at forme.","Lad dem hæve 1 t. Tænd ovnen på 225 °C efter 30 min.","Bag 18–20 min."],
+    tips:"Skoldede havregryn holder på fugten, så bollerne er gode også dagen efter.",
+    calc:{count:12,weight:95,hyd:72,lev:25,salt:2,honey:0,oil:0,coarse:25,coarseType:"havregryn",liquid:"vand"}, plan:{recipe:"buns",variant:"morning"} }
+];
+
+/* ---------- plan templates ---------- */
+const TEMPLATES = {
+  bread:{ name:"Surdejsbrød", variants:{cold:"Koldhævet natten over",same:"Samme dag"}, ready:()=>at(1,10,0), end:"Brødet er færdigt. Afkøl mindst 1 time før du skærer." },
+  buns:{ name:"Boller", variants:{evening:"Form i aften, bag fra køl",morning:"Dej i køl, form i morgen",same:"Samme dag"}, ready:()=>at(1,7,30), end:"Bollerne er klar. Velbekomme." },
+  rye:{ name:"Rugbrød", variants:{std:"Klassisk over to dage"}, ready:()=>at(1,17,0), end:"Ud af formen og på rist. Skær helst først i morgen." },
+  pizza:{ name:"Pizza", variants:{cold:"Kugler i køleskab (24–72 t)",poolish:"Poolish aftenen før",biga:"Biga dagen før",same:"Samme dag"}, ready:()=>at(1,18,30), end:"Første pizza er ude. Velbekomme – næste ind." }
+};
+function levainStep(o){
+  return {lev:true,t:"Fodr surdejen", d:peakMin(o.ratio,o.temp), k:"wait", x:"Fodr 1:"+o.ratio+":"+o.ratio+" og stil den lunt. Den er klar når den er fordoblet og hvælvet."};
+}
+function stepsFor(o){
+  const sour=o.recipe!=="pizza"||o.leaven==="surdej";
+  const f=F(o.temp)*(sour&&o.levain==="cold"?1.4:1)*(o.recipe==="pizza"&&sour?1.5:1), L=sour&&o.levain==="feed"?[levainStep(o)]:[];
+  const r=n=>Math.round(n);
+  if(o.recipe==="pizza"){
+    const oven=[{t:"Tænd pizzaovnen",d:40,k:"oven",x:"Stenen skal op på temperatur. Mål med et IR-termometer."},
+      {t:"Bag pizzaerne",d:30,k:"oven",x:"Drys spaden med semola. Drej pizzaen hvert 15.–20. sekund."}];
+    const balls={t:"Form kugler (staglio)",d:20,k:"act",x:"Del i "+state.pizza.count+" kugler à "+state.pizza.weight+" g (ca. "+pizzaD(state.pizza.weight,(THICK[state.pizza.thick]||THICK.napoletana)[1])+" cm). Stramme kugler i hævekasse eller bokse med låg."};
+    const proof=base=>({t:"Kuglerne hæver ved stuetemperatur",d:Math.max(60,r(base*f)-40),k:"wait",x:"Klar når de er bløde, luftige og har spredt sig lidt."});
+    if(o.variant==="poolish") return [...L,
+      {t:"Rør poolish",d:10,k:"act",x:"Lige dele mel og vand med en knivspids gær. Dæk til."},
+      {t:"Poolish modner",flex:true,min:10*60,ideal:[12*60,16*60],max:20*60,k:"wait-flex",x:"Ved 18–20 °C. Klar når den bobler og lige begynder at falde."},
+      {t:"Bland og ælt dejen",d:20,k:"act",x:"Poolish, vand, mel. Salt til sidst, så resten af vandet lidt ad gangen."},
+      {t:"Puntata (hævning i skål)",d:r(60*f),k:"wait",x:"Dækket, ved stuetemperatur."},balls,proof(300),...oven];
+    if(o.variant==="biga") return [...L,
+      {t:"Bland biga",d:10,k:"act",x:"Mel, 45 % vand og 1 % gær. Kun til det er klumpet – ingen æltning."},
+      {t:"Biga modner",flex:true,min:14*60,ideal:[16*60,24*60],max:30*60,k:"wait-flex",x:"Ved 16–18 °C, dækket."},
+      {t:"Bland og ælt dejen",d:25,k:"act",x:"Bryd bigaen i stykker. Vand, mel, salt – resten af vandet gradvist."},
+      {t:"Puntata (hævning i skål)",d:r(60*f),k:"wait",x:"Dækket, ved stuetemperatur."},balls,proof(280),...oven];
+    const pm=o.prepMin||30, lv=sour?"surdej":"gær", psp=splitDough("pizza",o.prep,pm);
+    const ptxt=k=>psp?stageText(psp.stages[k]):"";
+    const mix = o.prep==="autolyse" ? [
+        {t:"Autolyse: mel og vand",d:pm,k:"act",x:ptxt(0)},
+        {t:"Tilsæt "+lv+" og salt, ælt",d:famag()?12:20,k:"act",x:ptxt(1)}]
+      : o.prep==="fermentolyse" ? [
+        {t:"Fermentolyse: mel, vand og "+lv,d:pm,k:"act",x:ptxt(0)},
+        {t:"Tilsæt salt og ælt færdig",d:famag()?10:15,k:"act",x:ptxt(1)}]
+      : [{t:"Bland og ælt dejen",d:famag()?20:25,k:"act",x:ptxt(0)}];
+    const punt={t:"Puntata (hævning i skål)",d:r(Math.max(30,120*f-(o.prep==="fermentolyse"?pm*0.8:0))),k:"wait",x:"Dækket, ved stuetemperatur."};
+    if(o.variant==="same") return [...L,...mix,punt,balls,proof(360),...oven];
+    return [...L,...mix,punt,balls,
+      {t:"Kuglerne i køleskab",flex:true,min:16*60,ideal:[24*60,48*60],max:72*60,k:"fridge",x:"4–5 °C. 24–48 t giver mest smag og bedst dej."},
+      {t:"Tag kuglerne ud af køleskabet",d:sour?240:200,k:"wait",x:"De skal være stuetempererede og afslappede, før de kan strækkes."},...oven];
+  }
+  if(o.recipe==="bread"){
+    const pm=o.prepMin||45, sp=splitDough("bread",o.prep,pm);
+    const prep = o.prep==="fermentolyse" ? [
+        {t:"Fermentolyse: mel, vand og surdej",d:pm,k:"act",x:stageText(sp.stages[0])},
+        {t:"Tilsæt salt og ælt",d:famag()?10:10,k:"act",x:stageText(sp.stages[1])}]
+      : o.prep==="none" ? [{t:"Bland og ælt dejen",d:15,k:"act",x:stageText(sp.stages[0])}]
+      : [{t:"Autolyse: mel og vand",d:pm,k:"act",x:stageText(sp.stages[0])},
+         {t:"Tilsæt surdej og salt, ælt",d:10,k:"act",x:stageText(sp.stages[1])}];
+    const bulkMin = o.prep==="fermentolyse" ? Math.max(120,270*f-pm*0.8) : 270*f;
+    const base=[...L,...prep,
+      {t:"Hævning med stræk og fold",d:r(bulkMin),k:"wait",subs:[30,60,90,120].map((m,i)=>({m,t:"Stræk og fold "+(i+1)})),x:"Klar når dejen er hævet 50–75 %, bobler i siderne og har en hvælvet top. Tip: Kom 30 g dej i et lille glas med en elastik – så kan du se præcis, hvor meget den er hævet."},
+      {t:"Forform og lad hvile",d:30,k:"act",x:(state.bread.count>1?"Del dejen i "+state.bread.count+" stykker à "+state.bread.weight+" g. ":"Dejen vejer ca. "+state.bread.weight+" g. ")+"Form løst til en kugle og hvil udækket."},
+      {t:"Slutform og læg i hævekurv",d:10,k:"act",x:"Stram overfladen. Drys kurven med rismel. Sømmen opad."}];
+    const bake=[
+      {t:"Forvarm ovn og gryde til 250 °C",d:45,k:"oven",x:o.variant==="cold"?"Brødet bliver i køleskabet imens.":"Brødet hæver færdigt imens."},
+      {t:"Bag med låg, 250 °C",d:20,k:"oven",x:"Vend brødet ud på bagepapir, skær en snitte og læg det i gryden."},
+      {t:"Bag uden låg, 230 °C",d:22,k:"oven",x:"Til skorpen er mørk gyldenbrun. Kernetemperatur 96–98 °C."}];
+    if(o.variant==="cold") return [...base,{t:"Koldhævning i køleskab",flex:true,min:8*60,ideal:[12*60,16*60],max:36*60,k:"fridge",x:"Dæk til. Jo længere, jo mere syrlig smag."},...bake];
+    return [...base,{t:"Slutkævning ved stuetemperatur",d:Math.max(30,r(90*f)-45),k:"wait",x:"Fingertest: et let tryk skal fjedre langsomt tilbage."},...bake];
+  }
+  if(o.recipe==="buns"){
+    const bpm=o.prepMin||30, bsp=splitDough("buns",o.prep,bpm);
+    const mixA = o.prep==="autolyse" ? [{t:"Autolyse: mel og vand",d:bpm,k:"act",x:stageText(bsp.stages[0])},{t:"Tilsæt surdej og salt, ælt",d:15,k:"act",x:stageText(bsp.stages[1])}]
+      : o.prep==="fermentolyse" ? [{t:"Fermentolyse: mel, vand og surdej",d:bpm,k:"act",x:stageText(bsp.stages[0])},{t:"Tilsæt salt og ælt",d:15,k:"act",x:stageText(bsp.stages[1])}]
+      : [{t:"Bland og ælt dejen",d:15,k:"act",x:stageText(bsp.stages[0])}];
+    if(o.variant==="morning") return [...L,...mixA,
+      {t:"Hævning ved stuetemperatur",d:r(120*f),k:"wait",subs:[30,60].map((m,i)=>({m,t:"Stræk og fold "+(i+1)})),x:"Dejen skal være kommet godt i gang, men ikke færdighævet."},
+      {t:"Dejen i køleskab i skålen",flex:true,min:6*60,ideal:[8*60,14*60],max:18*60,k:"fridge",x:"Dæk skålen til. Dejen hæver langsomt færdig."},
+      {t:"Form bollerne",d:15,k:"act",x:"Del i "+state.buns.count+" stykker à "+state.buns.weight+" g. Kold dej er nem at forme."},
+      {t:"Efterhævning – tænd ovnen på 225 °C efter 30 min",d:60,k:"wait",x:"Dæk med et viskestykke."},
+      {t:"Pensl og bag, 225 °C",d:17,k:"oven",x:"Til de er gyldne og lyder hule når du banker under dem."}];
+    const bulk={t:"Hævning med stræk og fold",d:r(210*f),k:"wait",subs:[30,60].map((m,i)=>({m,t:"Stræk og fold "+(i+1)})),x:"Klar når dejen er hævet ca. 75 % og føles luftig."};
+    const shape={t:"Form bollerne",d:20,k:"act",x:"Del i "+state.buns.count+" stykker à "+state.buns.weight+" g. Form stramme boller og sæt dem på plade. Dæk med film."};
+    const bake=[{t:"Tænd ovnen på 225 °C",d:30,k:"oven",x:o.variant==="evening"?"Tag bollerne ud af køleskabet og lad dem stå på bordet imens.":"Bollerne hæver færdigt imens."},
+      {t:"Pensl og bag, 225 °C",d:17,k:"oven",x:"Til de er gyldne og lyder hule når du banker under dem."}];
+    if(o.variant==="evening") return [...L,...mixA,bulk,shape,{t:"Koldhævning i køleskab",flex:true,min:6*60,ideal:[8*60,12*60],max:16*60,k:"fridge",x:"Pladen med bollerne, tildækket."},...bake];
+    return [...L,...mixA,bulk,shape,{t:"Efterhævning",d:Math.max(30,r(90*f)-30),k:"wait",x:"Fingertest: et let tryk skal fjedre langsomt tilbage."},...bake];
+  }
+  // rye
+  return [...L,
+    {t:"Bland dag 1-dejen",d:15,k:"act",x:"Surdej, vand, rugmel og kerner. Dæk til."},
+    {t:"Hvile på køkkenbordet",flex:true,min:8*60,ideal:[12*60,18*60],max:24*60,k:"wait-flex",x:"Ved stuetemperatur. Den bliver boblende og syrlig."},
+    {t:"Tilsæt resten og fyld i formen",d:15,k:"act",x:"Gem 150 g dej som surdej, før du tilsætter salt."},
+    {t:"Hæv i formen",d:Math.max(60,r(240*f)-30),k:"wait",x:"Til der kommer små revner i overfladen."},
+    {t:"Forvarm ovnen til 170 °C",d:30,k:"oven",x:"Prik overfladen med en gaffel."},
+    {t:"Bag, 170 °C",d:105,k:"oven",x:"Til kernetemperaturen er 98 °C."}];
+}
+function buildPlan(o){
+  const steps=stepsFor(o), fi=steps.findIndex(s=>s.flex), out=[], warn=[];
+  let t=o.start;
+  if(steps[0]&&steps[0].lev){
+    t=o.start-steps[0].d*MIN;
+    const now=Date.now();
+    if(t<now-5*MIN){
+      t=round5(now);
+      const fit=bestRatio(o.start,o.temp), late=t+steps[0].d*MIN;
+      if(fit&&fit!==o.ratio) warn.push({w:true,m:"Fodrer du 1:"+o.ratio+":"+o.ratio+" nu, er surdejen først klar kl. "+hm(late)+". Vælg 1:"+fit+":"+fit+", så er den klar til kl. "+hm(o.start)+"."});
+      else if(late-o.start>10*MIN) warn.push({w:true,m:"Surdejen fodres nu og er klar kl. "+hm(late)+", så dejen starter først der. Vælg \"Fra køleskab\", hvis du vil i gang med det samme."});
+    } else if(t-now>20*MIN){
+      warn.push({w:false,m:"Fodr surdejen "+dayLabel(t)+" kl. "+hm(t)+" (1:"+o.ratio+":"+o.ratio+"), så er den klar, når du går i gang kl. "+hm(o.start)+"."});
+    }
+  }
+  const push=(s,a,b)=>{ const st=Object.assign({},s,{s:a,e:b}); out.push(st); };
+  if(fi<0){
+    for(const s of steps){ push(s,t,t+s.d*MIN); t+=s.d*MIN; }
+    return finish(out,t,warn,o);
+  }
+  for(let i=0;i<fi;i++){ push(steps[i],t,t+steps[i].d*MIN); t+=steps[i].d*MIN; }
+  const post=steps.slice(fi+1), postDur=post.reduce((a,s)=>a+s.d,0);
+  const fx=steps[fi];
+  let postStart=o.ready-postDur*MIN;
+  let flexMin=(postStart-t)/MIN;
+  const startShift=flexMin-fx.ideal[1], startShift2=flexMin-fx.ideal[0];
+  if(flexMin<fx.min){
+    const earliest=t+(fx.ideal[0])*MIN+postDur*MIN;
+    if(flexMin<0){ warn.push({w:true,short:true,m:"Det kan ikke nås. Med start "+hm(o.start)+" er det tidligst godt klar "+dayLabel(earliest)+" kl. "+hm(earliest)+"."}); flexMin=fx.min; postStart=t+fx.min*MIN; }
+ else warn.push({w:true,short:true,m:fx.t+" bliver kun "+dur(flexMin)+" – anbefalet mindst "+dur(fx.min)+". Vælg en senere klar-tid (fx "+dayLabel(earliest)+" kl. "+hm(earliest)+"), eller brug Samme dag."});
+  } else if(flexMin>fx.max){
+    const latest=o.start+startShift*MIN;
+    warn.push({w:true,m:fx.t+" bliver "+dur(flexMin)+", det er for længe. Start hellere "+dayLabel(latest)+" kl. "+hm(latest)+"."});
+  } else if(flexMin>fx.ideal[1]){
+    const a=o.start+startShift*MIN;
+    warn.push({w:false,m:"Det virker fint. Vil du ramme den ideelle tid ("+dur(fx.ideal[0])+"–"+dur(fx.ideal[1])+"), kan du starte helt frem til "+dayLabel(a)+" kl. "+hm(a)+"."});
+  }
+  push(fx,t,postStart); t=postStart;
+  for(const s of post){ push(s,t,t+s.d*MIN); t+=s.d*MIN; }
+  return finish(out,t,warn,o);
+}
+function bestRatio(start,temp){
+  const now=Date.now(), avail=(start-now)/MIN; let best=null, fallback=null;
+  [1,2,5,10].forEach(r=>{ const pk=peakMin(r,temp); if(pk>avail+10) return; fallback=r; if(!isNight(start-pk*MIN)) best=r; });
+  return best||fallback;
+}
+function fitReady(f){
+  if(f.variant==="same") return;
+  for(let i=0;i<4;i++){ if(buildPlan(f).warn.some(w=>w.short)) f.ready+=24*HOUR; else break; }
+}
+function nextAt(hhmm){
+  const [h,m]=(hhmm||"16:30").split(":").map(Number);
+  let t=at(0,h,m); if(t<Date.now()) t+=24*HOUR; return t;
+}
+function isNight(t){ const h=new Date(t).getHours(); return h>=23||h<6; }
+function finish(steps,ready,warn,o){
+  let nights=0;
+  steps.forEach(s=>{
+    if(s.subs) s.subs=s.subs.map(x=>Object.assign({},x,{at:s.s+x.m*MIN}));
+    s.night = (s.k!=="fridge"&&s.k!=="wait-flex"&&s.k!=="wait") && isNight(s.s);
+    if(s.subs&&s.subs.some(x=>isNight(x.at))) s.night=true;
+    if(s.night) nights++;
+  });
+  if(nights) warn.push({w:true,m:nights===1?"Ét trin falder om natten (markeret med måne). Overvej at flytte start- eller klar-tiden.":nights+" trin falder om natten (markeret med måne). Overvej at flytte start- eller klar-tiden."});
+  return {steps,ready,warn,recipe:o.recipe,variant:o.variant,temp:o.temp,end:TEMPLATES[o.recipe].end};
+}
+const KCOL = {act:"var(--accent)",wait:"var(--leaven)","wait-flex":"var(--leaven)",fridge:"var(--cold)",oven:"var(--oven)"};
+const KTXT = {act:"Gør noget",wait:"Vent",fridge:"Køleskab","wait-flex":"Vent",oven:"Ovn"};
+
+/* ---------- render: timeline ---------- */
+function timeline(p,interactive){
+  const now=Date.now(); let lastDay=dayKey(Date.now()), html="";
+  const curIdx = interactive ? p.steps.findIndex((s,i)=>!(p.done&&p.done[i])) : -1;
+  p.steps.forEach((s,i)=>{
+    const dk=dayKey(s.s), showDay=dk!==lastDay||i===0; lastDay=dk;
+    const done=interactive&&p.done&&p.done[i];
+    const cls=["st",s.k==="fridge"?"fridge":"",done?"done":"",(i===curIdx&&s.s<=now)?"cur":""].join(" ");
+    html+=`<div class="${cls}" style="--c:${KCOL[s.k]}">
+      <div class="t"><b>${hm(s.s)}</b>${showDay?`<small class="muted">${dayLabel(s.s)}</small>`:""}</div>
+      <div class="rail"><span class="dot"></span></div>
+      <div class="body">
+        <h3><span>${esc(s.t)}</span>${interactive?`<button class="chk" data-act="toggleStep" data-i="${i}" aria-label="Markér som udført" aria-pressed="${!!done}">${done?"✓":""}</button>`:""}</h3>
+        <div class="dur">${s.k==="fridge"?"":dur((s.e-s.s)/MIN)}${s.night?` <span class="night">☾ om natten</span>`:""}</div>
+        ${s.k==="fridge"?`<span class="fz">❄ ${dur((s.e-s.s)/MIN)} i køleskabet</span>`:""}
+        <div class="x">${esc(s.x||"")}</div>
+        ${s.subs?`<ul class="subs">${s.subs.map(x=>`<li><b>${hm(x.at)}</b><span>${esc(x.t)}</span></li>`).join("")}</ul>`:""}
+      </div></div>`;
+  });
+  html+=`<div class="st end"><div class="t"><b>${hm(p.ready)}</b><small class="muted">${dayLabel(p.ready)}</small></div><div class="rail"><span class="dot"></span></div><div class="body"><h3><span>Færdig</span></h3><div class="x">${esc(p.end)}</div></div></div>`;
+  return `<div class="legend"><span><i style="background:var(--accent)"></i>Gør noget</span><span><i style="background:var(--leaven)"></i>Vent</span><span><i style="background:var(--cold)"></i>Køleskab</span><span><i style="background:var(--oven)"></i>Ovn</span></div><div class="tl">${html}</div>`;
+}
+
+/* ---------- starter status ---------- */
+function lastFeed(){ return state.feeds.length?state.feeds[state.feeds.length-1]:null; }
+function starterInfo(){
+  const f=lastFeed(); if(!f) return null;
+  const pk=peakMin(f.ratio,f.temp), since=(Date.now()-f.t)/MIN;
+  let status, ready=false;
+  if(since<pk*0.75) status="Hæver – topper ca. kl. "+hm(f.t+pk*MIN);
+  else if(since<=pk*1.6){ status="Er ved toppen nu – klar til brug"; ready=true; }
+  else if(since<48*60) status="Er faldet igen – fodr før brug";
+  else status="Sulten – fodr 1–2 gange før du bager";
+  return {f,pk,since,status,ready};
+}
+
+/* ---------- views ---------- */
+function renderHome(){
+  const h=new Date().getHours();
+  $("#greet").textContent = h<5?"God nat":h<10?"God morgen":h<17?"God dag":"God aften";
+  const si=starterInfo();
+  $("#greetSub").textContent = si ? "Surdejen: "+si.status.toLowerCase()+"." : "Log din første fodring under Surdej, så holder appen øje med den.";
+  $("#homeStarter").innerHTML=nsCard(false);
+  const p=state.plan, box=$("#homeNow");
+  if(p){
+    const i=p.steps.findIndex((s,k)=>!(p.done&&p.done[k]));
+    if(i<0){
+      box.innerHTML=`<div class="now"><span class="kind-tag"><i style="background:var(--accent)"></i>${esc(TEMPLATES[p.recipe].name)}</span><div class="what">Alle trin er udført.</div><p class="muted">${esc(p.end)}</p><div class="row" style="margin-top:14px"><button class="btn" data-act="finishPlan">Afslut og gem i loggen</button></div></div>`;
+    } else {
+      const s=p.steps[i], now=Date.now(), started=s.s<=now;
+      const nextSub = s.subs ? s.subs.find(x=>x.at>now) : null;
+      const pct = started ? Math.min(100,Math.max(0,(now-s.s)/(s.e-s.s)*100)) : 0;
+      const nxt=p.steps[i+1];
+      box.innerHTML=`<div class="now">
+        <span class="kind-tag"><i style="background:${KCOL[s.k]}"></i>${esc(TEMPLATES[p.recipe].name)} · trin ${i+1} af ${p.steps.length}</span>
+        <div class="what">${started?"Nu":"Næste"}: ${esc(s.t)}</div>
+        <div class="when num" style="margin-top:6px">${started?(s.k==="act"?"Nu":hm(s.e)):hm(s.s)}</div>
+        <p class="muted">${started?(s.k==="act"?"Startede kl. "+hm(s.s):"Færdig "+untilTxt(s.e-now)):dayLabel(s.s)+", "+untilTxt(s.s-now)}</p>
+        ${started&&s.k!=="act"?`<div class="bar"><b style="width:${pct}%;background:${KCOL[s.k]}"></b></div>`:""}
+        ${nextSub?`<p><b>${esc(nextSub.t)}</b> kl. ${hm(nextSub.at)} (${untilTxt(nextSub.at-now)})</p>`:""}
+        <p class="muted mini">${esc(s.x||"")}</p>
+        ${nxt?`<p class="mini">Derefter: ${esc(nxt.t)} kl. ${hm(nxt.s)}</p>`:""}
+        <div class="row" style="margin-top:12px">
+          <button class="btn" data-act="toggleStep" data-i="${i}">Udført</button>
+          ${nextSub?`<button class="btn quiet" data-act="timerStart" data-min="${Math.max(1,Math.round((nextSub.at-now)/MIN))}" data-label="${esc(nextSub.t)}">Timer til fold</button>`:""}
+          <a class="btn ghost" href="#plan">Hele planen</a>
+        </div></div>`;
+    }
+  } else box.innerHTML="";
+  const q=[];
+  if(!p) q.push(`<button class="hero" data-act="presetBuns"><strong>Boller til i morgen tidlig</strong><span>Kommet hjem i eftermiddag? Få en plan der starter nu.</span></button>`);
+  q.push(`<button data-act="logFeed"><strong>Fodret nu</strong><span>Log fodring 1:${state.feed.ratio}:${state.feed.ratio}</span></button>`);
+  q.push(`<button data-act="go" data-to="plan"><strong>${p?"Se planen":"Planlæg"}</strong><span>${p?"Tidslinje og tjekliste":"Klar til et bestemt tidspunkt"}</span></button>`);
+  q.push(`<button data-act="go" data-to="pizza"><strong>Pizza</strong><span>Napolitansk, poolish, biga, NY</span></button>`);
+  q.push(`<button data-act="calcGo" data-m="bread"><strong>Beregn brød</strong><span>Antal, vægt, hydrering</span></button>`);
+  q.push(`<button data-act="calcGo" data-m="buns"><strong>Beregn boller</strong><span>Antal og størrelse</span></button>`);
+  q.push(`<button data-act="calcGo" data-m="rcp"><strong>Opskrifter</strong><span>Brød, rugbrød og boller</span></button>`);
+  const lw=lowItems();
+  if(lw.length) q.unshift(`<button data-act="go" data-to="mel" style="grid-column:1/-1;border-color:var(--oven)"><strong>Mel skal købes</strong><span>${lw.map(i=>esc(i.name.split(" (")[0])).join(", ")} – se bedste priser</span></button>`);
+  $("#quick").innerHTML=q.join("");
+  const L=state.log.slice(-5).reverse();
+  $("#logSec").innerHTML = L.length?`<h2>Dine bagninger</h2><div class="list" style="margin-top:10px">${L.map(l=>`<div><span class="grow"><strong>${esc(l.name)}</strong> <span class="muted">${"★".repeat(l.rating||0)}</span><br><small>${new Date(l.t).toLocaleDateString("da-DK",{day:"numeric",month:"short"})} · ${l.temp} °C${l.note?" · "+esc(l.note):""}</small></span></div>`).join("")}</div>`:"";
+}
+
+function nsDay(){ if(!state.ns) return 0; const b=new Date(); b.setHours(0,0,0,0); return Math.max(1,Math.round((b-state.ns.start)/86400000)+1); }
+function nsCard(full){
+  const n=state.ns; if(!n) return "";
+  if(n.finished) return full?`<div class="ok"><b>Din nye surdej blev klar ${new Date(n.finished).toLocaleDateString("da-DK",{day:"numeric",month:"long"})}.</b> Brug den 4–8 timer efter fodring. <button class="btn small quiet" data-act="nsStop">Skjul</button></div>`:"";
+  const day=nsDay(), D=NS_DAYS[Math.min(day,8)-1], W=waterFor(DDT.feed,false,null,0);
+  const tasks=D.tasks.map((t,i)=>{ const k=day+"-"+i, done=!!n.done[k];
+    return `<li style="display:flex;gap:10px;align-items:flex-start;padding:6px 0"><button class="chk" style="width:30px;height:30px;border-radius:9px;border:2px solid var(--line);background:${done?"var(--leaven)":"var(--surface)"};color:var(--surface);flex:none" data-act="nsTask" data-k="${k}" aria-pressed="${done}" aria-label="Udført">${done?"✓":""}</button><span style="${done?"opacity:.55":""}">${esc(t.replace("{W}",W))}</span></li>`; }).join("");
+  const dots=Array.from({length:7},(_,i)=>`<i style="flex:1;height:6px;border-radius:3px;background:${i+1<day?"var(--leaven)":i+1===day?"var(--accent)":"var(--sunk)"}"></i>`).join("");
+  return `<div class="now" style="margin-bottom:16px"><span class="kind-tag"><i style="background:var(--accent)"></i>Ny surdej · ${day<=7?"dag "+day+" af 7":"dag "+day}</span>
+    <div style="display:flex;gap:4px;margin:10px 0 2px">${dots}</div>
+    <div class="what">${esc(D.t)}</div>
+    <ul style="list-style:none;padding:0;margin:8px 0">${tasks}</ul>
+    <p class="muted mini">${esc(D.expect)}</p>
+    ${D.test?`<div class="row" style="margin-top:10px"><button class="btn" data-act="nsDone">Den fordobler sig – den er klar</button></div><p class="mini muted">Ikke endnu? Fortsæt i morgen – guiden giver dig næste dag.</p>`:""}
+    ${full?`<div class="row" style="margin-top:12px"><button class="btn small quiet" data-act="nsShift" data-d="1">Ryk en dag tilbage</button><button class="btn small quiet" data-act="nsShift" data-d="-1">Spring en dag frem</button><button class="btn small ghost" data-act="nsStop">Stop guiden</button></div>
+      <details style="margin-top:12px"><summary>Hele forløbet</summary><div class="dbody">${NS_DAYS.slice(0,7).map((x,i)=>`<p style="${i+1<day?"opacity:.55":""}"><b>${esc(x.t)}${i+1===day?" · i dag":""}</b><br>${esc(x.tasks.join(" ").replace(/\{W\}/g,W))}</p>`).join("")}</div></details>`:`<a class="btn small ghost" href="#surdej" style="margin-top:10px">Hele forløbet</a>`}
+  </div>`;
+}
+function renderStarter(){
+  $("#nsSec").innerHTML = state.ns ? nsCard(true) : `<div class="note" style="margin-bottom:16px"><strong>Ny surdej fra bunden?</strong><p>Appen guider dig dag for dag i 7 dage – med mængder, vandtemperatur og hvad du kan forvente. Dagens opgaver vises på forsiden.</p><div class="row" style="margin-top:10px"><button class="btn" data-act="nsStart" data-back="0">Start i dag</button><button class="btn quiet" data-act="nsStart" data-back="1">Jeg startede i går</button></div></div>`;
+  const si=starterInfo(), el=$("#starterStatus");
+  if(si){
+    const pct=Math.min(100,si.since/si.pk*100);
+    el.innerHTML=`<div class="now"><span class="kind-tag"><i style="background:${si.ready?"var(--accent)":"var(--leaven)"}"></i>Fodret ${dayLabel(si.f.t)} kl. ${hm(si.f.t)} · 1:${si.f.ratio}:${si.f.ratio} · ${si.f.temp} °C</span>
+      <div class="what">${esc(si.status)}</div>
+      <div class="bar"><b style="width:${pct}%;background:${si.ready?"var(--accent)":"var(--leaven)"}"></b></div>
+      <p class="muted mini">${dur(si.since)} siden. Forventet top efter ca. ${dur(si.pk)}.</p>
+      <div class="row" style="margin-top:10px"><button class="btn" data-act="logFeed">Jeg har fodret nu</button></div></div>`;
+  } else {
+    el.innerHTML=`<div class="now"><div class="what" style="margin-top:0">Ingen fodringer endnu</div><p class="muted">Tryk når du fodrer, så beregner appen hvornår surdejen topper ved din køkkentemperatur.</p><div class="row" style="margin-top:10px"><button class="btn" data-act="logFeed">Jeg har fodret nu</button></div></div>`;
+  }
+  $("#ratioSeg").innerHTML=[1,2,5,10].map(r=>`<button data-act="ratio" data-r="${r}" aria-pressed="${state.feed.ratio===r}">1:${r}:${r}</button>`).join("");
+  $("#fNeed").value=state.feed.need; $("#fTemp").value=state.feed.temp;
+  feedOut();
+  const fl=state.feeds.slice(-6).reverse();
+  $("#feedLog").innerHTML = fl.length?`<h2>Seneste fodringer</h2><div class="list" style="margin-top:10px">${fl.map((f,i)=>`<div><span class="grow num">${dayLabel(f.t)} kl. ${hm(f.t)}<br><small>1:${f.ratio}:${f.ratio} ved ${f.temp} °C</small></span><button class="btn small ghost" data-act="delFeed" data-t="${f.t}">Slet</button></div>`).join("")}</div>`:"";
+  $("#troubles").innerHTML=TROUBLES.map(t=>`<p><b>${t[0]}</b><br>${t[1]}</p>`).join("");
+}
+function feedOut(){
+  const {need,ratio,temp}=state.feed;
+  const s=Math.ceil(need*1.1/(1+2*ratio));
+  const pk=peakMin(ratio,temp);
+  $("#feedOut").innerHTML=`<div class="sheet num">
+    <div class="line"><span>Surdej fra glasset</span><b>${s} g</b></div>
+    <div class="line"><span>Mel</span><b>${s*ratio} g</b></div>
+    <div class="line"><span>Vand, ca. ${waterFor(DDT.feed,false,temp,0)} °C</span><b>${s*ratio} g</b></div>
+    <div class="line total"><span>I alt (inkl. lidt ekstra)</span><b>${s*(1+2*ratio)} g</b></div></div>
+    <p class="ok">Topper om ca. <b>${dur(pk)}</b> ved ${temp} °C – fodrer du nu, er den klar omkring kl. <b>${hm(Date.now()+pk*MIN)}</b>.</p>`;
+}
+
+const TROUBLES=[
+  ["Brødet flyder ud og bliver fladt","Oftest overhævet eller for svag formning. Afslut bulkhævningen tidligere (50–75 % i stedet for fordobling), stram overfladen mere, eller sænk hydreringen 3–5 %."],
+  ["Tæt, klistret krumme","Underhævet. Giv bulkhævningen mere tid eller et lunere sted, og brug surdejen ved toppen. Lad brødet køle helt af før du skærer."],
+  ["Stort hul lige under skorpen","Typisk underhævet eller luft fanget ved formning. Tryk store bobler ud ved forformning."],
+  ["Surdejen lugter af neglelak","Den er sulten. Fodr oftere eller med højere forhold (1:5:5), så forsvinder lugten."],
+  ["Surdejen hæver ikke","For koldt eller for ung. Stil den ved 24–26 °C, brug lidt fuldkornsrug, og fodr regelmæssigt i nogle dage."],
+  ["Bollerne er tunge","Giv efterhævningen 30–60 min mere, eller lad dejen hæve lidt mere før den kommer i køleskabet. Fingertesten er din ven."],
+  ["For syrlig smag","Kortere koldhævning, mindre surdej i dejen og fodr surdejen 1:5:5 så den er mildere."],
+  ["Ikke syrlig nok","Længere koldhævning (op til 36 t for brød) og lidt mere fuldkornsrug i surdejen."]
+];
+
+/* ---------- calculator ---------- */
+const stepper=(key,label,unit,d,hint)=>`<div class="field"><label for="i-${key}">${label}</label><div class="stepper"><button data-act="step" data-k="${key}" data-d="${-d}" aria-label="Mindre">−</button><input id="i-${key}" inputmode="decimal" data-bind="${key}" value="${String(get(key)).replace(".",",")}"><span class="unit">${unit}</span><button data-act="step" data-k="${key}" data-d="${d}" aria-label="Mere">+</button></div>${hint?`<small>${hint}</small>`:""}</div>`;
+function get(path){ return path.split(".").reduce((o,k)=>o[k],state); }
+function set(path,v){ const ks=path.split("."); let o=state; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=v; }
+const sel=(key,label,opts)=>`<div class="field"><label for="i-${key}">${label}</label><select id="i-${key}" data-bind="${key}">${opts.map(o=>`<option value="${o[0]}" ${get(key)===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select></div>`;
+const gfmt=v=>v<10?v.toFixed(1).replace(".",","):String(Math.round(v));
+const sheet=lines=>`<div class="sheet num">${lines.map(l=>`<div class="line${l[2]?" total":""}"><span>${l[0]}</span><b>${l[1]}</b></div>`).join("")}</div>`;
+let lastUse=[];
+const useBtn=()=>`<button class="btn quiet" data-act="useFlour">Træk melet fra lageret</button>`;
+
+function hydChips(key,opts){
+  return `<div class="seg" style="margin-top:8px">${opts.map(([v,l])=>`<button data-act="setv" data-k="${key}" data-v="${v}" aria-pressed="${get(key)==v}">${v} %<small>${l}</small></button>`).join("")}</div>`;
+}
+function maltField(kind){
+  const b=state[kind];
+  return `<div class="field"><label>Maltmel</label><div class="seg">${[["none","Uden"],["aktiv","Aktivt"],["inaktiv","Inaktivt"]].map(([k,v])=>`<button data-act="malt" data-kind="${kind}" data-v="${k}" aria-pressed="${b.maltType===k}">${v}</button>`).join("")}</div>
+    ${b.maltType!=="none"?`<div style="margin-top:8px">${stepper(kind+".malt","Mængde","%",b.maltType==="aktiv"?0.1:0.5)}</div>`:""}
+    <small>${b.maltType==="aktiv"?"Aktivt (diastatisk) maltmel giver mere farve på skorpen, lidt sødme og hjælper hævningen ved lang koldhævning. 0,3–1 % af melet.":b.maltType==="inaktiv"?"Inaktivt (ristet) maltmel giver mørkere krumme og en maltet smag. 1–3 % af melet.":"Valgfrit. Aktivt giver farve og hævekraft, inaktivt giver smag."}</small></div>`;
+}
+function hydDesc(kind,h,whole){
+  let t;
+  if(kind==="bread") t=h<70?"Fast dej – nem at forme og god i brødform.":h<75?"God balance: åben krumme og stadig til at håndtere.":h<79?"Åben, saftig krumme. Kræver lidt øvelse i formning.":"Meget åben og klistret dej – til erfarne. Brug stærkt mel.";
+  else if(kind==="buns") t=h<64?"Faste boller, lette at forme.":h<68?"Bløde boller med god form.":h<72?"Luftige boller – dejen er lidt klistret.":"Meget luftige, men svære at forme. Brug våde hænder.";
+  else t=h<61?"Klassisk og nem at strække.":h<65?"Napolitansk standard.":h<69?"Blødere dej og mere luftig kant.":"Høj hydrering – kræver stærkt mel (fx Nuvola) og gerne fordej.";
+  if(whole>=20) t+=" Med "+whole+" % groft mel kan du roligt gå ca. "+Math.round(whole/10)+" % højere.";
+  return t;
+}
+const maltName=t=>t==="aktiv"?"Aktivt maltmel":"Inaktivt maltmel";
+function waterNote(ddt,label){ return `<br>Vand: <b>${label}</b> – giver ca. ${ddt} °C i dejen ved ${state.feed.temp} °C i køkkenet. <button class="btn small quiet" style="margin-top:6px" data-act="waterSheet">Juster</button>`; }
+/* ---------- mixing: autolyse / fermentolyse / mixer ---------- */
+const famag=()=>state.mixer==="famag";
+function mixerFric(prep){ if(!famag()) return 2; return prep==="autolyse"?6:prep==="fermentolyse"?7:9; }
+function recPrep(kind){
+  let r;
+  if(kind==="bread"){
+    const b=state.bread;
+    if(b.hyd>=76) r={prep:"autolyse",min:60,why:"Høj hydrering: autolysen gør dejen stærk og smidig, før surdej og salt kommer i. Lidt af vandet holdes tilbage og tilsættes til sidst."};
+    else if(b.whole>=30||(b.wholeType==="rugmel"&&b.whole>=20)) r={prep:"autolyse",min:30,why:"Meget groft mel suger vand langsomt. En kort autolyse giver en blødere dej, uden at den bliver klistret."};
+    else r={prep:"fermentolyse",min:30,why:"Ved almindelig hydrering er fermentolyse enklest. Surdejen arbejder fra start, så den samlede tid bliver lidt kortere."};
+    if(famag()&&r.prep==="autolyse") r.why+=" Med Famag forkorter autolysen æltetiden, så dejen bliver mindre varm.";
+    if(b.maltType==="aktiv"&&r.min>30){ r.min=30; r.why+=" Aktivt maltmel gør enzymerne hurtige, så hold hvilen på 30 min."; }
+  } else if(kind==="buns"){
+    const b=state.buns;
+    if(famag()) r=b.coarse>=25?{prep:"autolyse",min:20,why:"Det grove mel får tid til at trække vand, så maskinen ælter kortere."}:{prep:"none",min:0,why:"Med Famag behøver bolledej ingen hvile – spiralen udvikler glutenet på få minutter."};
+    else r={prep:"autolyse",min:30,why:"Når du ælter i hånden, sparer autolysen dig for meget af æltningen."};
+  } else {
+    const p=state.pizza;
+    if(p.yt!=="surdej"&&p.pf!=="direkte") r={prep:"none",min:0,why:"Med fordej er dejen allerede i gang – bland direkte."};
+    else if(p.hyd>=67) r={prep:"autolyse",min:30,why:"Høj hydrering: autolyse gør dejen lettere at ælte, og resten af vandet tilsættes til sidst."};
+    else if(p.yt==="surdej") r={prep:"fermentolyse",min:30,why:"Surdej arbejder langsomt – fermentolyse giver den et forspring."};
+    else r={prep:"none",min:0,why:"Klassisk napolitansk: saltet opløses i vandet, og melet drysses gradvist i. Ingen hvile nødvendig."};
+  }
+  return r;
+}
+function getPrep(kind){
+  const b=state[kind], r=recPrep(kind);
+  if(kind==="pizza"&&b.yt!=="surdej"&&b.pf!=="direkte") return {prep:"none",min:0};
+  return b.prep?{prep:b.prep,min:b.prep==="none"?0:(b.prepMin||r.min||30)}:{prep:r.prep,min:r.min};
+}
+const fmtG=v=>gfmt(v)+" g";
+function splitDough(kind,prepOv,minOv){
+  const gp=getPrep(kind), prep=prepOv||gp.prep, min=minOv||gp.min, fam=famag();
+  if(kind==="pizza"){
+    const p=state.pizza; if(p.yt!=="surdej"&&p.pf!=="direkte") return null;
+    const sour=p.yt==="surdej", r=pizzaCalc(p), F=r.F, W=F*p.hyd/100;
+    const wT=waterFor(DDT.pizza,sour,null,mixerFric(prep));
+    const res=Math.round(prep==="autolyse"?F*(p.hyd>=67?0.06:0.04):prep==="fermentolyse"?F*0.03:(p.hyd>=66?F*0.05:0));
+    const fl=[FLOURS[p.flour]||"Mel",fmtG(F)], wat=["Vand, ca. "+wT+" °C",fmtG(W-res)];
+    const lv=sour?["Aktiv surdej",fmtG(F*p.yeast/100)]:[p.yt==="tor"?"Tørgær":"Frisk gær",fmtG(F*p.yeast/100)];
+    const salt=["Salt",fmtG(F*p.salt/100)], sug=p.sugar>0?[["Sukker",fmtG(F*p.sugar/100)]]:[], rest=res?[["Resten af vandet",fmtG(res)]]:[];
+    let st;
+    if(prep==="autolyse") st=[{t:"1 · Autolyse, "+min+" min",items:[fl,wat],how:fam?"Lav hastighed 1–2 min, til der ikke er tørt mel. Dæk skålen til.":"Rør til der ikke er tørt mel. Dæk til."},
+      {t:"2 · "+(sour?"Surdej":"Gær")+" og salt",items:[lv,salt,...sug,...rest],how:fam?"Lav hastighed 5–6 min, derefter høj 2–3 min til dejen er glat og slipper skålen. Resten af vandet i en tynd stråle på lav hastighed.":"Ælt 10 min til dejen er glat og elastisk. Tilsæt resten af vandet lidt ad gangen."}];
+    else if(prep==="fermentolyse") st=[{t:"1 · Fermentolyse, "+min+" min",items:[fl,wat,lv],how:fam?"Lav hastighed 2 min. Dæk skålen til.":"Rør til der ikke er tørt mel. Dæk til."},
+      {t:"2 · Salt",items:[salt,...sug,...rest],how:fam?"Lav hastighed 3 min, derefter høj 2–3 min. Resten af vandet i en tynd stråle.":"Ælt saltet ind i 8–10 min."}];
+    else st=[{t:"Bland og ælt",items:[wat,salt,...sug,lv,fl,...(res?[["Til sidst: resten af vandet",fmtG(res)]]:[])],how:fam?"Vand i skålen og opløs saltet. "+(sour?"Rør surdejen ud":"Smuldr gæren i")+". Start på lav hastighed og drys melet i over ca. 5 min. Fortsæt på lav 8–10 min, derefter høj 2–3 min til dejen er glat. Dejen må højst blive 24 °C.":"Opløs salt i vandet, tilsæt "+(sour?"surdej":"gær")+" og melet gradvist. Ælt 15–20 min, hvil 15 min, ælt kort igen."}];
+    return {prep,min,stages:st,wT,res};
+  }
+  const b=state[kind], mp=b.maltType==="none"?0:b.malt;
+  const F=b.count*b.weight/(1+(b.hyd+b.lev+b.salt+mp)/100);
+  const cp=kind==="bread"?b.whole:b.coarse, ct=kind==="bread"?b.wholeType:b.coarseType;
+  const tn={fuldkornshvede:"Fuldkornshvedemel",fuldkornsspelt:"Fuldkornsspelt",rugmel:"Fuldkornsrugmel",ølandshvede:"Ølandshvede",grahamsmel:"Grahamsmel",havregryn:"Havregryn (skoldet)"}[ct];
+  const coarse=F*cp/100, W=F*b.hyd/100;
+  const wT=waterFor(DDT[kind],true,null,mixerFric(prep));
+  const res=Math.round(prep==="autolyse"?F*(b.hyd>=76?0.06:0.04):prep==="fermentolyse"?F*0.03:(b.hyd>=74?F*0.05:0));
+  const fl=[["Hvedemel",fmtG(F-coarse)],...(coarse>0?[[tn,fmtG(coarse)]]:[]),...(mp>0?[[maltName(b.maltType),fmtG(F*mp/100)]]:[])];
+  const wat=["Vand, ca. "+wT+" °C",fmtG(W-res)], lv=["Aktiv surdej",fmtG(F*b.lev/100)], salt=["Salt",fmtG(F*b.salt/100)], rest=res?[["Resten af vandet",fmtG(res)]]:[];
+  const buns=kind==="buns";
+  let st;
+  if(prep==="autolyse") st=[{t:"1 · Autolyse, "+min+" min",items:[...fl,wat],how:fam?"Lav hastighed 1–2 min, til der ikke er tørt mel. Dæk skålen til.":"Rør med hånden til der ikke er tørt mel. Dæk til."},
+    {t:"2 · Surdej og salt",items:[lv,salt,...rest],how:fam?(buns?"Surdej i, lav hastighed 3 min. Salt i, høj hastighed 5–7 min til dejen slipper skålen og vinduesprøven holder. Resten af vandet i en tynd stråle på lav.":"Surdej i, lav hastighed 2 min. Salt i, lav 1 min. Høj hastighed 3–5 min til dejen slipper skålen. Resten af vandet i en tynd stråle på lav til sidst."):"Fordel surdejen, drys saltet over og hæld resten af vandet på. Klem det ind med våde hænder i 3–4 min."}];
+  else if(prep==="fermentolyse") st=[{t:"1 · Fermentolyse, "+min+" min",items:[...fl,wat,lv],how:fam?"Lav hastighed 2 min. Dæk skålen til.":"Rør til der ikke er tørt mel. Dæk til."},
+    {t:"2 · Salt",items:[salt,...rest],how:fam?(buns?"Salt i, lav 2 min, derefter høj 5–7 min til vinduesprøven holder. Resten af vandet i en tynd stråle.":"Salt i, lav hastighed 2 min, derefter høj 3–5 min. Resten af vandet i en tynd stråle."):"Drys saltet over, hæld vandet på og klem det ind."}];
+  else st=[{t:"Bland og ælt",items:[wat,lv,...fl,salt,...(res?[["Til sidst: resten af vandet",fmtG(res)]]:[])],how:fam?(buns?"Vand og surdej i skålen, derefter melet. Lav hastighed 4 min, salt i, høj hastighed 6–8 min til vinduesprøven holder.":"Vand og surdej i skålen, derefter melet. Lav hastighed 4–5 min, salt i, høj hastighed 5–7 min. Resten af vandet i en tynd stråle til sidst."):"Bland alt undtagen salt og ælt 5 min. Tilsæt salt og ælt videre, til dejen er glat."}];
+  return {prep,min,stages:st,wT,res};
+}
+const stageText=st=>st.items.map(i=>i[0]+" "+i[1]).join(" · ")+". "+st.how;
+function stagesHtml(sp){
+  if(!sp) return "";
+  return `<h2 style="margin:22px 0 4px">Sådan blander du</h2>${sp.stages.map(st=>`<div class="blk"><h3>${esc(st.t)}</h3>${sheet(st.items)}<p class="mini muted" style="margin-top:6px">${esc(st.how)}</p></div>`).join("")}${sp.res?`<p class="mini muted">${sp.res} g vand holdes tilbage og tilsættes til sidst. Det gør det lettere at få hævemiddel og salt ind i dejen.</p>`:""}`;
+}
+function prepField(kind){
+  const gp=getPrep(kind);
+  if(kind==="pizza"&&state.pizza.yt!=="surdej"&&state.pizza.pf!=="direkte") return "";
+  return `<div class="field"><label>Start af dejen</label><div class="seg">${[["autolyse","Autolyse"],["fermentolyse","Fermentolyse"],["none","Ingen"]].map(([k,v])=>`<button data-act="prep" data-kind="${kind}" data-v="${k}" aria-pressed="${gp.prep===k}">${v}</button>`).join("")}</div>
+    ${gp.prep!=="none"?`<div style="margin-top:8px">${stepper(kind+".prepMin","Hvile","min",5)}</div>`:""}
+    <small>${gp.prep==="autolyse"?"Kun mel og vand hviler. Glutenet udvikler sig af sig selv, og dejen bliver smidigere.":gp.prep==="fermentolyse"?"Mel, vand og "+(kind==="pizza"&&state.pizza.yt!=="surdej"?"gær":"surdej")+" hviler uden salt. Hævningen er i gang med det samme.":"Alt blandes og æltes på én gang."}</small></div>`;
+}
+function mixerField(kind){
+  return `<div class="field"><label>Æltning</label><div class="seg"><button data-act="mixer" data-kind="${kind}" data-v="hand" aria-pressed="${!famag()}">I hånden</button><button data-act="mixer" data-kind="${kind}" data-v="famag" aria-pressed="${famag()}">Famag spiral</button></div>${famag()?`<small>Spiralen varmer dejen op, så vandet skal være koldere – det er regnet med. Får krogen ikke fat i dejen, er mængden for lille.</small>`:""}</div>`;
+}
+function recHtml(kind){
+  const r=recPrep(kind), gp=getPrep(kind);
+  if(kind==="pizza"&&state.pizza.yt!=="surdej"&&state.pizza.pf!=="direkte") return "";
+  const name={autolyse:"Autolyse",fermentolyse:"Fermentolyse",none:"Ingen hvile"}[r.prep]+(r.prep!=="none"?" "+r.min+" min":"");
+  if(!state[kind].prep) return `<p class="ok"><b>Forslag i brug: ${name}.</b> ${esc(r.why)} Vælg selv ovenfor, hvis du vil noget andet.</p>`;
+  return gp.prep===r.prep?`<p class="ok"><b>Godt valg.</b> ${esc(r.why)}</p>`:`<p class="note"><b>Forslag: ${name}.</b> ${esc(r.why)} <button class="btn small quiet" style="margin-top:6px" data-act="usePrep" data-kind="${kind}">Brug forslaget</button></p>`;
+}
+
+function shapeSel(kind,label){
+  const w=state[kind].weight, i=SHAPES[kind].findIndex(x=>x[1]===w);
+  return `<div class="field"><label for="shape-${kind}">${label}</label><select id="shape-${kind}" data-shape="${kind}"><option value="">Vælg for at få den rigtige dejvægt</option>${SHAPES[kind].map((x,j)=>`<option value="${j}" ${j===i?"selected":""}>${x[0]} – ${x[1]} g</option>`).join("")}</select><small>${kind==="bread"?"Dejen skal fylde ca. halvdelen af kurven, før den hæver.":"Vej hver portion – så bliver de lige store og bager ens."}</small></div>`;
+}
+function renderBrod(){
+  $$("#brodSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===ui.calc));
+  const c=$("#brodBody");
+  if(ui.calc==="rcp"){ renderRecipes(); return; }
+  if(ui.calc==="bread"){
+    c.innerHTML=`<div class="fields">
+      ${shapeSel("bread","Hævekurv eller form")}
+      <div class="two">${stepper("bread.count","Antal brød","stk",1)}${stepper("bread.weight","Dejvægt pr. brød","g",50)}</div>
+      <div>${stepper("bread.hyd","Hydrering","%",1)}${hydChips("bread.hyd",[[68,"Let"],[72,"Mellem"],[75,"Klassisk"],[78,"Åben"],[82,"Ekspert"]])}</div>
+      <div class="two">${stepper("bread.lev","Surdej","%",1)}${stepper("bread.salt","Salt","%",0.1)}</div>
+      ${stepper("bread.whole","Groft mel af melmængden","%",5)}
+      ${sel("bread.wholeType","Slags groft mel",[["fuldkornshvede","Fuldkornshvedemel"],["fuldkornsspelt","Fuldkornsspelt"],["rugmel","Fuldkornsrugmel"],["ølandshvede","Ølandshvede"]])}
+      ${maltField("bread")}
+      ${mixerField("bread")}
+      ${prepField("bread")}
+    </div><h2 style="margin:24px 0 10px">Det skal du bruge</h2><div id="calcOut"></div>`;
+  } else {
+    c.innerHTML=`<div class="fields">
+      ${shapeSel("buns","Slags boller")}
+      <div class="two">${stepper("buns.count","Antal boller","stk",1)}${stepper("buns.weight","Vægt pr. bolle","g",5)}</div>
+      <div>${stepper("buns.hyd","Hydrering","%",1)}${hydChips("buns.hyd",[[62,"Fast"],[66,"Blød"],[70,"Luftig"],[74,"Meget luftig"]])}</div>
+      <div class="two">${stepper("buns.lev","Surdej","%",1)}${stepper("buns.salt","Salt","%",0.1)}</div>
+      ${stepper("buns.coarse","Groft af melmængden","%",5)}
+      ${sel("buns.coarseType","Slags groft",[["grahamsmel","Grahamsmel"],["fuldkornsspelt","Fuldkornsspelt"],["havregryn","Havregryn (skoldes)"],["rugmel","Fuldkornsrugmel"]])}
+      ${maltField("buns")}
+      ${mixerField("buns")}
+      ${prepField("buns")}
+    </div><h2 style="margin:24px 0 10px">Det skal du bruge</h2><div id="calcOut"></div>`;
+  }
+  calcOut();
+}
+function calcOut(){
+  if(ui.tab==="pizza"){ pizzaOut(); return; }
+  const o=$("#calcOut"); if(!o) return;
+  if(ui.calc==="bread"){
+    const b=state.bread, mp=b.maltType==="none"?0:b.malt, tot=b.count*b.weight, F_=tot/(1+b.hyd/100+b.lev/100+b.salt/100+mp/100);
+    const coarse=F_*b.whole/100, lev=F_*b.lev/100, wT=waterFor(DDT.bread,true,null,mixerFric(getPrep("bread").prep));
+    const totHyd=(F_*b.hyd/100+lev/2)/(F_+lev/2)*100;
+    const st=Math.ceil(lev*1.1/5);
+    const typeName={fuldkornshvede:"Fuldkornshvedemel",fuldkornsspelt:"Fuldkornsspelt",rugmel:"Fuldkornsrugmel",ølandshvede:"Ølandshvede"}[b.wholeType];
+    lastUse=[["hvedemel",F_-coarse+st*2],[b.wholeType,coarse],["maltmel",F_*mp/100]];
+    o.innerHTML=sheet([["Hvedemel",g(F_-coarse)+" g"],...(coarse>0?[[typeName,g(coarse)+" g"]]:[]),...(mp>0?[[maltName(b.maltType),gfmt(F_*mp/100)+" g"]]:[]),["Vand, ca. "+wT+" °C",g(F_*b.hyd/100)+" g"],["Aktiv surdej",g(lev)+" g"],["Salt",gfmt(F_*b.salt/100)+" g"],["Dej i alt",g(tot)+" g",1]])+
+      `<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("bread",b.hyd,b.whole)}<br>Samlet hydrering inkl. surdejen: ${totHyd.toFixed(1).replace(".",",")} %.${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.bread,"ca. "+wT+" °C")}<br>Surdej: fodr <b>${st} g</b> surdej med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand ca. ${dur(peakMin(2,state.feed.temp))} før du blander.</p>
+      ${recHtml("bread")}${stagesHtml(splitDough("bread"))}
+      <div class="row" style="margin-top:14px"><button class="btn" data-act="planFrom" data-r="bread">Planlæg dette brød</button>${useBtn()}</div>`;
+  } else if(ui.calc==="buns"){
+    const b=state.buns, mp=b.maltType==="none"?0:b.malt, tot=b.count*b.weight, F_=tot/(1+(b.hyd+b.lev+b.salt+mp)/100), wT=waterFor(DDT.buns,true,null,mixerFric(getPrep("buns").prep));
+    const coarse=F_*b.coarse/100, liq=F_*b.hyd/100, lev=F_*b.lev/100, st=Math.ceil(lev*1.1/5);
+    const typeName={grahamsmel:"Grahamsmel",fuldkornsspelt:"Fuldkornsspelt",havregryn:"Havregryn",rugmel:"Fuldkornsrugmel"}[b.coarseType];
+    lastUse=[["hvedemel",F_-coarse+st*2],[b.coarseType,coarse],["maltmel",F_*mp/100]];
+    const L=[["Hvedemel",g(F_-coarse)+" g"]];
+    if(coarse>0) L.push([typeName+(b.coarseType==="havregryn"?" + samme vægt kogende vand":""),g(coarse)+" g"]);
+    if(mp>0) L.push([maltName(b.maltType),gfmt(F_*mp/100)+" g"]);
+    L.push(["Vand, ca. "+wT+" °C",g(liq)+" g"]);
+    L.push(["Aktiv surdej",g(lev)+" g"],["Salt",gfmt(F_*b.salt/100)+" g"]);
+    L.push([b.count+" boller à "+b.weight+" g",g(tot)+" g",1]);
+    o.innerHTML=sheet(L)+`<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("buns",b.hyd,b.coarse)}${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.buns,"ca. "+wT+" °C")}<br>Bag ved <b>225 °C i 15–18 min</b>. Surdej: fodr <b>${st} g</b> med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand.${b.coarseType==="havregryn"&&coarse>0?" Det kogende vand til havregrynene tæller ikke med i væsken.":""}</p>
+      ${recHtml("buns")}${stagesHtml(splitDough("buns"))}
+      <div class="row" style="margin-top:14px"><button class="btn" data-act="planFrom" data-r="buns">Planlæg disse boller</button>${useBtn()}</div>`;
+  }
+}
+
+/* water temperature (modal) */
+function waterSheet(){
+  openModal(`<h2>Vandtemperatur</h2><p class="muted">Dejtemperaturen styrer, hvor hurtigt dejen hæver – og dermed om tiderne i planen passer. Vælg hvad du laver, og indstil køkkenets temperatur.</p>
+    <div class="fields" style="margin-top:12px">
+      <div class="field"><label>Hvad laver du?</label><div class="seg">${[[25,"Brød","25 °C"],[25.1,"Boller","25 °C"],[23,"Pizza","23 °C"],[27,"Fodring","27 °C"]].map(([v,l,sub])=>`<button data-act="ddt" data-v="${Math.round(v)}" data-l="${l}" aria-pressed="${ui.ddtL===l||(!ui.ddtL&&l==="Brød")}">${l}<small>${sub}</small></button>`).join("")}</div></div>
+      ${stepper("water.ddt","Ønsket dejtemperatur","°C",1)}
+      ${stepper("feed.temp","Køkkentemperatur","°C",1,"Mål med et termometer – mel og surdej har samme temperatur som køkkenet.")}
+      <div class="field"><label>Æltning</label><div class="seg"><button data-act="fric" data-v="2" aria-pressed="${!famag()}">I hånden</button><button data-act="fric" data-v="8" aria-pressed="${famag()}">Famag spiral</button></div><small>Spiralen varmer dejen op, så vandet skal være koldere.</small></div>
+    </div><div id="waterOut" style="margin-top:16px"></div>
+    <button class="btn ghost wide" style="margin-top:14px" data-act="closeModal">Luk</button>`);
+  waterOut();
+}
+function waterOut(){
+  const o=$("#waterOut"); if(!o) return;
+  const w=state.water, K=state.feed.temp, feed=ui.ddtL==="Fodring";
+  const raw=feed?3*w.ddt-2*K:4*w.ddt-3*K-w.fric, t=waterFor(w.ddt,!feed,K,feed?0:w.fric);
+  o.innerHTML=`<div class="now"><span class="kind-tag">Vandet skal være</span><div class="when num" style="margin-top:8px">${t} °C</div>
+    ${raw>38?`<p class="warn">Den rigtige temperatur ville være over 38 °C, hvilket kan skade surdejen. Brug 38 °C, og stil dejen et lunere sted, fx i ovnen med lyset tændt.</p>`:raw<4?`<p class="warn">Selv iskoldt vand er ikke nok. Brug vand fra køleskabet, og stil dejen køligt.</p>`:`<p class="muted">Bland koldt og varmt vand fra hanen, og mål med et stegetermometer. Én grad betyder mere, end man tror.</p>`}</div>`;
+  calcOut(); if($("#feedOut")) feedOut();
+}
+
+/* ---------- pizza ---------- */
+function pizzaCalc(p,count){
+  const n=count||p.count, tot=n*p.weight;
+  const sour=p.yt==="surdej", pf=sour?"direkte":p.pf;
+  const yeastPct = sour ? 0 : p.yeast;
+  const F_=tot/(1+(p.hyd+p.salt+p.oil+p.sugar+yeastPct+(sour?p.yeast:0))/100);
+  const W=F_*p.hyd/100, fl=FLOURS[p.flour]||"Mel";
+  const yName=p.yt==="tor"?"Tørgær":"Frisk gær";
+  const blocks=[];
+  const extras=[["Salt",gfmt(F_*p.salt/100)+" g"]];
+  if(p.oil>0) extras.push(["Olivenolie",gfmt(F_*p.oil/100)+" g"]);
+  if(p.sugar>0) extras.push(["Sukker",gfmt(F_*p.sugar/100)+" g"]);
+  if(pf==="direkte"){
+    const L=[[fl,g(F_)+" g"],["Vand, ca. "+waterFor(DDT.pizza,sour,null,mixerFric(getPrep("pizza").prep))+" °C",g(W)+" g"]];
+    if(sour) L.push(["Aktiv surdej",g(F_*p.yeast/100)+" g"]); else L.push([yName,gfmt(F_*yeastPct/100)+" g"]);
+    blocks.push({t:"Dejen",lines:[...L,...extras]});
+  } else {
+    const pct=Math.min(p.pfPct, pf==="poolish"?Math.min(100,p.hyd):100)/100;
+    const pF=F_*pct, pW=pf==="poolish"?pF:pF*0.45;
+    const pY=pf==="poolish"?pF*0.0015:pF*0.01;
+    const yf=p.yt==="tor"?1/3:1;
+    blocks.push({t:pf==="poolish"?"Poolish (aftenen før)":"Biga (dagen før)",lines:[[fl,g(pF)+" g"],["Vand, ca. "+waterFor(DDT.poolish,false)+" °C",g(pW)+" g"],[yName,gfmt(pY*yf)+" g"]]});
+    blocks.push({t:"Dejen (næste dag)",lines:[[pf==="poolish"?"Al poolish":"Al biga",g(pF+pW+pY*yf)+" g"],[fl,g(F_-pF)+" g"],["Vand, ca. "+waterFor(DDT.pizza,true,null,mixerFric("none"))+" °C",g(Math.max(0,W-pW))+" g"],...extras]});
+  }
+  return {blocks,F:F_,tot,n,use:[[p.flour,F_]]};
+}
+function renderPizza(){
+  $$("#pzSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===ui.pz));
+  const c=$("#pzBody");
+  if(ui.pz==="styles"){
+    if(ui.pstyle){
+      const z=PIZZAS.find(x=>x.id===ui.pstyle), p=Object.assign({},state.pizza,z.calc), r=pizzaCalc(p,ui.pcount);
+      c.innerHTML=`<button class="back" data-act="pzClose">‹ Alle stilarter</button>
+        <h1 style="margin-top:6px">${z.name}</h1><p class="lede">${z.sub}</p>
+        <div class="facts num"><div><small>Hydrering</small><b>${p.hyd} %</b></div><div><small>Ovn</small><b>${z.oven.replace(" °C","°")}</b></div><div><small>Bagetid</small><b>${z.bake}</b></div></div>
+        <div class="field"><label>Antal pizzaer</label><div class="stepper"><button data-act="pcount" data-d="-1" aria-label="Færre">−</button><input readonly value="${ui.pcount}" aria-label="Antal"><span class="unit">à ${p.weight} g</span><button data-act="pcount" data-d="1" aria-label="Flere">+</button></div></div>
+        ${r.blocks.map(b=>`<div class="blk"><h3>${b.t}</h3>${sheet(b.lines)}</div>`).join("")}
+        <h2 style="margin:22px 0 6px">Sådan gør du</h2><ol class="method">${z.method.map(m=>`<li>${m}</li>`).join("")}</ol>
+        <div class="row" style="margin-top:16px"><button class="btn" data-act="pzPlan" data-id="${z.id}">Planlæg den</button><button class="btn quiet" data-act="pzToCalc" data-id="${z.id}">Åbn i beregner</button></div>`;
+      return;
+    }
+    c.innerHTML=`<div class="list">${PIZZAS.map(z=>`<button data-act="pzOpen" data-id="${z.id}"><span class="grow"><strong>${z.name}</strong><br><small>${z.sub}</small></span><span class="chev">›</span></button>`).join("")}</div>
+      <p class="note" style="margin-top:14px"><strong>Hvilket Caputo-mel?</strong><br>Pizzeria (blå) til 8–24 t og klassisk napolitansk. Saccorosso/Cuoco (rød) til lang koldhævning, 24–72 t. Nuvola Super til høj hydrering og fordej.</p>`;
+    return;
+  }
+  if(ui.pz==="calc"){
+    const p=state.pizza, sour=p.yt==="surdej";
+    c.innerHTML=`<div class="fields">
+      <div class="two">${stepper("pizza.diam","Pizzastørrelse","cm",1)}${sel("pizza.thick","Bund",Object.entries(THICK).map(([k,v])=>[k,v[0]]))}</div>
+      <div class="two">${stepper("pizza.count","Antal pizzaer","stk",1)}${stepper("pizza.weight","Kuglevægt","g",5,"Udregnes af størrelse og bund – kan rettes")}</div>
+      ${sel("pizza.flour","Mel",Object.entries(FLOURS))}
+      <div>${stepper("pizza.hyd","Hydrering","%",1)}${hydChips("pizza.hyd",[[60,"Klassisk"],[63,"Napoli"],[67,"Blød"],[70,"Canotto"],[75,"Høj"]])}</div>
+      <div class="field"><label>Hævetid</label><div class="seg">${[["same","Samme dag"],["24","24 t"],["48","48 t"],["72","72 t"]].map(([k,v])=>`<button data-act="pzMethod" data-v="${k}" aria-pressed="${p.method===k}">${v}</button>`).join("")}</div><small>Kold hævning i køleskab, undtagen samme dag. Gær/surdej foreslås automatisk.</small></div>
+      <div class="field"><label>Hævemiddel</label><div class="seg">${[["frisk","Frisk gær"],["tor","Tørgær"],["surdej","Surdej"]].map(([k,v])=>`<button data-act="pzYt" data-v="${k}" aria-pressed="${p.yt===k}">${v}</button>`).join("")}</div></div>
+      ${sour||p.pf==="direkte"?stepper("pizza.yeast",sour?"Surdej":(p.yt==="tor"?"Tørgær":"Frisk gær"),"%",sour?1:0.01):""}
+      ${sour?"":`<div class="field"><label>Fordej</label><div class="seg">${[["direkte","Direkte"],["poolish","Poolish"],["biga","Biga"]].map(([k,v])=>`<button data-act="pzPf" data-v="${k}" aria-pressed="${p.pf===k}">${v}</button>`).join("")}</div></div>
+      ${p.pf!=="direkte"?stepper("pizza.pfPct","Andel af melet i fordejen","%",5,p.pf==="poolish"?"30–50 % er typisk. Al gær er i poolishen.":"Ofte 50–100 %. Al gær er i bigaen."):""}`}
+      ${stepper("pizza.salt","Salt","%",0.1)}
+      ${stepper("pizza.sugar","Sukker","%",0.5,"Kun til New York-style og ovne under 350 °C – brænder ellers.")}
+      ${mixerField("pizza")}
+      ${prepField("pizza")}
+    </div><h2 style="margin:24px 0 10px">Det skal du bruge</h2><div id="pzOut"></div>`;
+    pizzaOut();
+    return;
+  }
+  c.innerHTML=`<details open><summary>Ovnen</summary><div class="dbody"><ul>
+      <li>Varm ovnen op i 30–45 min. Stenen skal være varm hele vejen igennem, ikke kun luften.</li>
+      <li>Mål stenen med et IR-termometer: 430–480 °C til napolitansk, ca. 300 °C til New York-style.</li>
+      <li>Skru ned for flammen i sekundet før pizzaen går ind, så bunden ikke brænder før kanten er færdig. Skru op igen bagefter.</li>
+      <li>Drej pizzaen en kvart omgang hvert 15.–20. sekund med en lille drejespade.</li>
+      <li>Lad stenen genvinde varmen 1–2 min mellem pizzaerne.</li></ul></div></details>
+    <details><summary>Strække og topping</summary><div class="dbody"><ul>
+      <li>Drys bordet og spaden med semola, ikke mel – semola brænder ikke så let.</li>
+      <li>Tryk fra midten og ud, og lad kanten være urørt. Brug aldrig kagerulle til napolitansk.</li>
+      <li>Tomatsauce: San Marzano-tomater knust i hånden med 1–1,5 % salt. Ikke kogt.</li>
+      <li>Fior di latte eller mozzarella: riv den ud et par timer før og lad den dryppe af i en sigte.</li>
+      <li>Mindre er mere. Ca. 70–80 g tomat og 80–100 g ost til en 30 cm pizza.</li>
+      <li>Basilikum og olivenolie på efter bagning.</li></ul></div></details>
+    <details><summary>Fejlfinding</summary><div class="dbody">
+      <p><b>Bunden brænder, kanten er bleg</b><br>Stenen er for varm i forhold til flammen. Sænk flammen lige før pizzaen går ind, eller vent lidt.</p>
+      <p><b>Dejen trækker sig sammen</b><br>Glutenet er for stramt. Giv kuglerne 30–60 min mere ved stuetemperatur.</p>
+      <p><b>Dejen river og er klistret</b><br>Overhævet. Brug mindre gær eller kortere tid uden for køleskabet.</p>
+      <p><b>Pizzaen sidder fast på spaden</b><br>For meget topping, for lang tid på spaden, eller for lidt semola. Top hurtigt og ryst spaden let før du skyder ind.</p>
+      <p><b>Ingen leopardpletter</b><br>For lav temperatur eller for ung dej. Prøv 24–48 t koldhævning og en varmere ovn.</p></div></details>`;
+}
+function pizzaOut(){
+  const o=$("#pzOut"); if(!o) return;
+  const r=pizzaCalc(state.pizza);
+  lastUse=r.use;
+  const p=state.pizza;
+  o.innerHTML=r.blocks.map(b=>`<div class="blk"><h3>${b.t}</h3>${sheet(b.lines)}</div>`).join("")+
+    `<p class="note" style="margin-top:12px"><b>${p.hyd} % hydrering:</b> ${hydDesc("pizza",p.hyd,0)}${waterNote(DDT.pizza,"ca. "+waterFor(DDT.pizza,p.yt==="surdej"||p.pf!=="direkte",null,mixerFric(getPrep("pizza").prep))+" °C")}<br>${p.count} kugler à <b>${p.weight} g</b> giver ca. <b>${pizzaD(p.weight,(THICK[p.thick]||THICK.napoletana)[1])} cm</b> ${p.thick==="ny"?"New York-style":((THICK[p.thick]||THICK.napoletana)[0]).toLowerCase()} pizza. ${g(r.tot)} g dej i alt, heraf ${g(r.F)} g mel.${p.yt==="tor"?" Tørgær er ca. en tredjedel af frisk gær.":""}</p>
+    ${recHtml("pizza")}${stagesHtml(splitDough("pizza"))}
+    <div class="row" style="margin-top:14px"><button class="btn" data-act="pzPlanCalc">Planlæg denne dej</button>${useBtn()}</div>`;
+}
+
+/* ---------- flour inventory ---------- */
+const kgfmt=v=>v==null?"–":(Math.round(v*10)/10).toString().replace(".",",");
+const pr=v=>v.toFixed(2).replace(".",",");
+function invItems(){ return state.inv.items; }
+function lowItems(){ return invItems().filter(i=>i.kg!=null&&i.kg<i.min&&!i.ordered); }
+function bestOffer(key){
+  const L=(PRICES[key]||[]).filter(x=>x.size&&x.price); if(!L.length) return null;
+  return L.reduce((a,b)=>b.price/b.size<a.price/a.size?b:a);
+}
+function shopsHtml(it){
+  const L=PRICES[it.key]||[], best=bestOffer(it.key);
+  const sorted=L.slice().sort((a,b)=>(a.size&&a.price?a.price/a.size:999)-(b.size&&b.price?b.price/b.size:999));
+  const q=encodeURIComponent(it.q||it.name);
+  return `<div class="shops">
+    ${sorted.map(x=>`<a class="shop${x===best?" best":""}" href="${x.url}" target="_blank" rel="noopener"><span class="grow"><strong>${esc(x.shop)}</strong><br><small>${x.size?kgfmt(x.size)+" kg · "+pr(x.price/x.size)+" kr/kg":""}${x.note?(x.size?" · ":"")+esc(x.note):""}</small></span><b>${x.price?pr(x.price)+" kr":x.from?"fra "+pr(x.from)+" kr":"Se pris"}</b></a>`).join("")}
+    ${L.length?`<p class="mini muted">Priser fundet ${PRICE_DATE}. Fragt ikke medregnet – tjek prisen i butikken.</p>`:`<p class="mini muted">Ingen gemte priser endnu. Søg live herunder.</p>`}
+    <div class="row" style="margin-top:6px">
+      <a class="btn small quiet" href="https://www.pricerunner.dk/results?q=${q}" target="_blank" rel="noopener">Søg på PriceRunner</a>
+      <a class="btn small quiet" href="https://www.google.com/search?tbm=shop&q=${q}" target="_blank" rel="noopener">Google Shopping</a>
+    </div>
+    ${it.key.startsWith("caputo")?`<p class="mini muted">Tip: Netto har ofte Caputo 1 kg på tilbud.</p>`:""}
+  </div>`;
+}
+function invCard(it,i){
+  const low=it.kg!=null&&it.kg<it.min, pct=it.kg==null?0:Math.min(100,it.kg/(it.min*3)*100);
+  const tag=it.ordered?`<span class="tag ord">Bestilt ${new Date(it.ordered).toLocaleDateString("da-DK",{day:"numeric",month:"short"})}</span>`:it.kg==null?`<span class="tag unk">Angiv beholdning</span>`:low?`<span class="tag low">Skal købes</span>`:"";
+  const best=bestOffer(it.key);
+  const open=ui.invOpen===i;
+  return `<div class="inv${low?" low":""}">
+    <div class="hd"><span class="grow"><strong>${esc(it.name)}</strong><br>${tag}${best&&!tag?`<small>Bedst: ${pr(best.price/best.size)} kr/kg</small>`:""}</span><span class="kg">${kgfmt(it.kg)}<small> kg</small></span></div>
+    <div class="lvl"><b style="width:${pct}%"></b></div>
+    <div class="acts">
+      ${it.ordered?`<button class="btn small" data-act="invGot" data-i="${i}">Modtaget (+${kgfmt(it.pack)} kg)</button><button class="btn small ghost" data-act="invUnorder" data-i="${i}">Fortryd</button>`:
+      `<button class="btn small quiet" data-act="invAdd" data-i="${i}" data-v="-0.5">−0,5</button><button class="btn small quiet" data-act="invAdd" data-i="${i}" data-v="${it.pack}">+${kgfmt(it.pack)} kg</button><button class="btn small ${low?"":"quiet"}" data-act="invShops" data-i="${i}">${open?"Skjul butikker":"Køb"}</button>`}
+      <button class="btn small ghost" data-act="invEdit" data-i="${i}">Ret</button>
+    </div>
+    ${open?shopsHtml(it)+`<div style="padding:0 16px 14px"><button class="btn small wide" data-act="invOrder" data-i="${i}">Jeg har bestilt</button></div>`:""}
+  </div>`;
+}
+function renderMel(){
+  const items=invItems(), low=lowItems();
+  const unknown=items.filter(i=>i.kg==null).length;
+  const sec=(cat,label)=>`<h2 style="margin:24px 0 4px">${label}</h2>${items.map((it,i)=>it.cat===cat?invCard(it,i):"").join("")}`;
+  $("#melBody").innerHTML=`
+    ${low.length?`<div class="now"><span class="kind-tag"><i style="background:var(--oven)"></i>Indkøbsliste</span><div class="what">${low.length===1?"1 slags mel er ved at slippe op":low.length+" slags mel er ved at slippe op"}</div>
+      <ul style="padding-left:20px;margin:8px 0 0">${low.map(i=>{const b=bestOffer(i.key);return `<li><b>${esc(i.name)}</b> – ${kgfmt(i.kg)} kg tilbage${b?`. Bedst: ${esc(b.shop)}, ${kgfmt(b.size)} kg for ${pr(b.price)} kr`:""}</li>`}).join("")}</ul></div>`:
+      unknown?`<p class="note">Start med at skrive, hvor meget du har af hver slags. Tryk <b>Ret</b> på et mel. Mel du ikke bruger, kan du fjerne.</p>`:`<p class="ok">Du har nok mel til at bage.</p>`}
+    ${sec("pizza","Pizzamel")}${sec("brod","Mel til brød og surdej")}
+    <button class="btn ghost wide" style="margin-top:12px" data-act="invNew">Tilføj mel</button>`;
+}
+function updBadge(){ const n=lowItems().length, b=$("#melBadge"); b.hidden=!n; b.textContent=n; }
+function useFlour(){
+  const done=[], newlyLow=[];
+  lastUse.forEach(([key,grams])=>{
+    if(!grams) return;
+    const it=invItems().find(x=>x.key===key); if(!it||it.kg==null) return;
+    const wasLow=it.kg<it.min;
+    it.kg=Math.max(0,Math.round((it.kg-grams/1000)*100)/100);
+    done.push(it.name.split(" (")[0]+" −"+kgfmt(grams/1000)+" kg");
+    if(!wasLow&&it.kg<it.min) newlyLow.push(it.name.split(" (")[0]);
+  });
+  save(); updBadge();
+  if(!done.length){ toast("Angiv først beholdning under Mel"); return; }
+  toast(newlyLow.length? newlyLow.join(", ")+" er ved at slippe op" : done.join(" · "));
+}
+function invEditSheet(i){
+  const it=i>=0?invItems()[i]:{name:"",kg:0,min:1,pack:1,cat:"brod"};
+  openModal(`<h2>${i>=0?"Ret mel":"Tilføj mel"}</h2>
+    <div class="fields" style="margin-top:12px">
+      <div class="field"><label for="ivName">Navn</label><input id="ivName" class="plain" value="${esc(it.name)}"></div>
+      <div class="two"><div class="field"><label for="ivKg">Beholdning, kg</label><input id="ivKg" class="plain" inputmode="decimal" value="${it.kg==null?"":kgfmt(it.kg)}"></div>
+      <div class="field"><label for="ivMin">Køb når under, kg</label><input id="ivMin" class="plain" inputmode="decimal" value="${kgfmt(it.min)}"></div></div>
+      <div class="two"><div class="field"><label for="ivPack">Pakke jeg køber, kg</label><input id="ivPack" class="plain" inputmode="decimal" value="${kgfmt(it.pack)}"></div>
+      <div class="field"><label for="ivCat">Bruges til</label><select id="ivCat"><option value="pizza" ${it.cat==="pizza"?"selected":""}>Pizza</option><option value="brod" ${it.cat==="brod"?"selected":""}>Brød og surdej</option></select></div></div>
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn" data-act="invSave" data-i="${i}">Gem</button><button class="btn ghost" data-act="closeModal">Annullér</button></div>
+    ${i>=0?`<button class="btn ghost wide" style="margin-top:10px" data-act="invDel" data-i="${i}">Fjern fra listen</button>`:""}`);
+}
+const num=v=>{ const n=parseFloat(String(v).replace(",",".")); return isNaN(n)?null:n; };
+
+/* ---------- plan view ---------- */
+function defaultForm(recipe,variant){
+  const fed=starterInfo();
+  const T=TEMPLATES[recipe];
+  const gp=recipe==="rye"?{prep:"none",min:0}:getPrep(recipe==="pizza"?"pizza":recipe==="buns"?"buns":"bread");
+  return {prep:gp.prep, prepMin:gp.min||30, recipe, variant:variant||Object.keys(T.variants)[0], temp:recipe==="pizza"?21:(state.feed.temp||23), leaven:recipe==="pizza"&&state.pizza.yt==="surdej"?"surdej":"gaer", levain:fed&&fed.ready?"ready":"feed", ratio:2, start:round5(Date.now()), ready:T.ready()};
+}
+function renderPlan(){
+  const b=$("#planBody");
+  if(state.plan){
+    const p=state.plan;
+    $("#planLede").textContent=TEMPLATES[p.recipe].name+" · "+TEMPLATES[p.recipe].variants[p.variant]+" · "+p.temp+" °C";
+    b.innerHTML=`${timeline(p,true)}
+      <div class="row"><button class="btn quiet" data-act="shift" data-min="30">Udskyd resten 30 min</button><button class="btn quiet" data-act="shift" data-min="-30">Ryk 30 min frem</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-act="finishPlan">Afslut og gem i loggen</button><button class="btn ghost" data-act="cancelPlan">Slet planen</button></div>`;
+    return;
+  }
+  $("#planLede").textContent="Vælg hvornår du starter, og hvornår det skal være klar. Køleskabet tager tiden imellem.";
+  if(!ui.form) ui.form=defaultForm("buns");
+  const f=ui.form, T=TEMPLATES[f.recipe];
+  if(!T.variants[f.variant]) f.variant=Object.keys(T.variants)[0];
+  const hasFlex=!(f.variant==="same");
+  b.innerHTML=`<div class="fields">
+    <div class="field"><label>Hvad skal du bage?</label><div class="seg">${Object.entries(TEMPLATES).map(([k,v])=>`<button data-act="pf" data-k="recipe" data-v="${k}" aria-pressed="${f.recipe===k}">${k==="bread"?"Brød":v.name}</button>`).join("")}</div></div>
+    ${Object.keys(T.variants).length>1?`<div class="field"><label for="pfVar">Metode</label><select id="pfVar" data-pf="variant">${Object.entries(T.variants).map(([k,v])=>`<option value="${k}" ${f.variant===k?"selected":""}>${v}</option>`).join("")}</select></div>`:""}
+    <div class="field"><label for="pfStart">Jeg kan gå i gang med dejen</label><input type="datetime-local" id="pfStart" data-pf="start" value="${toLocalInput(f.start)}">
+      <div class="chips"><button class="btn small quiet" data-act="pfNow">Nu</button><button class="btn small quiet" data-act="pfHome">Når jeg er hjemme (${esc(state.homeTime)})</button><button class="btn small quiet" data-act="pfStartAt" data-h="7">I morgen 07:00</button></div>
+      <div class="two" style="margin-top:10px;align-items:center"><small style="margin:0">Jeg plejer at være hjemme kl.</small><input type="time" id="pfHomeTime" value="${esc(state.homeTime)}"></div>
+      <small>Skal surdejen fodres, lægger planen fodringen før, så den er klar når du kommer hjem.</small></div>
+    ${f.recipe==="bread"||f.recipe==="buns"||(f.recipe==="pizza"&&(f.variant==="cold"||f.variant==="same"))?`<div class="field"><label>Start af dejen</label><div class="seg">${[["autolyse","Autolyse"],["fermentolyse","Fermentolyse"],["none","Ingen"]].map(([k,v])=>`<button data-act="pf" data-k="prep" data-v="${k}" aria-pressed="${f.prep===k}">${v}</button>`).join("")}</div>
+      ${f.prep!=="none"?`<div class="stepper" style="margin-top:8px"><button data-act="pfPrep" data-d="-15" aria-label="Kortere">−</button><input readonly value="${f.prepMin}" aria-label="Minutter"><span class="unit">min</span><button data-act="pfPrep" data-d="15" aria-label="Længere">+</button></div>`:""}
+      <small>${f.prep==="fermentolyse"?"Mel, vand og "+(f.recipe==="pizza"&&f.leaven!=="surdej"?"gær":"surdej")+" hviler sammen uden salt. Hævningen starter med det samme, så bulk bliver kortere.":f.prep==="autolyse"?"Kun mel og vand hviler. Glutenet udvikler sig af sig selv, og dejen bliver smidigere.":"Alt blandes på én gang."}<br>${(()=>{const r=recPrep(f.recipe==="pizza"?"pizza":f.recipe); return "Forslag: "+({autolyse:"autolyse",fermentolyse:"fermentolyse",none:"ingen hvile"}[r.prep])+(r.prep!=="none"?" "+r.min+" min":"")+". "+esc(r.why);})()} Mængderne står ved hvert trin.</small></div>`:""}
+    ${hasFlex?`<div class="field"><label for="pfReady">Skal være klar</label><input type="datetime-local" id="pfReady" data-pf="ready" value="${toLocalInput(f.ready)}"></div>`:""}
+    <div class="field"><label>Køkkentemperatur</label><div class="stepper"><button data-act="pfTemp" data-d="-1" aria-label="Koldere">−</button><input inputmode="numeric" data-pf="temp" value="${f.temp}"><span class="unit">°C</span><button data-act="pfTemp" data-d="1" aria-label="Varmere">+</button></div><small>Varmere = hurtigere. Planen justerer hævetiderne automatisk.</small></div>
+    ${f.recipe==="pizza"?`<div class="field"><label>Hævemiddel</label><div class="seg"><button data-act="pf" data-k="leaven" data-v="gaer" aria-pressed="${f.leaven!=="surdej"}">Gær</button><button data-act="pf" data-k="leaven" data-v="surdej" aria-pressed="${f.leaven==="surdej"}">Surdej</button></div></div>`:""}
+    ${f.recipe!=="pizza"||f.leaven==="surdej"?`<div class="field"><label>Surdejen</label><div class="seg"><button data-act="pf" data-k="levain" data-v="feed" aria-pressed="${f.levain==="feed"}">Fodres først</button><button data-act="pf" data-k="levain" data-v="ready" aria-pressed="${f.levain==="ready"}">Aktiv nu</button><button data-act="pf" data-k="levain" data-v="cold" aria-pressed="${f.levain==="cold"}">Fra køleskab</button></div>
+    ${f.levain==="cold"?`<small>Brug surdejen direkte, hvis den er fodret inden for de sidste 4 dage. Dejen hæver ca. 40 % længere – men du sparer fodringen, når tiden er knap.</small>`:""}
+    ${f.levain==="feed"?`<div class="seg" style="margin-top:8px">${[1,2,5,10].map(r=>`<button data-act="pf" data-k="ratio" data-v="${r}" aria-pressed="${f.ratio==r}">1:${r}:${r}<small>${dur(peakMin(r,f.temp))}</small></button>`).join("")}</div><small>Høje forhold er langsomme – godt hvis du fodrer om morgenen, før du går på arbejde.</small>`:""}</div>`:""}
+  </div>
+  <div id="planPreview" style="margin-top:20px"></div>`;
+  planPreview();
+}
+function planPreview(){
+  const el=$("#planPreview"); if(!el) return;
+  const p=buildPlan(ui.form); ui.preview=p;
+  const last=state.log.slice().reverse().find(l=>l.recipe===ui.form.recipe||(!l.recipe&&l.name&&l.name.startsWith(TEMPLATES[ui.form.recipe].name)));
+  el.innerHTML=`${last&&(last.note||last.rating)?`<p class="note"><b>Sidste gang</b> (${new Date(last.t).toLocaleDateString("da-DK",{day:"numeric",month:"short"})}): ${"★".repeat(last.rating||0)}${last.note?" – "+esc(last.note):""}</p>`:""}${p.warn.map(w=>`<p class="${w.w?"warn":"ok"}">${esc(w.m)}</p>`).join("")}
+    ${timeline(p,false)}
+    <button class="btn wide" data-act="startPlan">Start planen</button>`;
+}
+
+/* ---------- recipes view ---------- */
+function renderRecipes(){
+  const b=$("#brodBody");
+  if(!ui.recipe){
+    const grp=(t,label)=>`<h2 style="margin:22px 0 10px">${label}</h2><div class="list">${RECIPES.filter(r=>r.type===t).map(r=>`<button data-act="openRcp" data-id="${r.id}"><span class="grow"><strong>${r.name}</strong><br><small>${r.sub}</small></span><span class="chev">›</span></button>`).join("")}</div>`;
+    b.innerHTML=`<p class="muted">Hver opskrift kan sendes direkte til beregneren eller planen.</p>${grp("bread","Brød")}${grp("rye","Rugbrød")}${grp("buns","Boller")}`;
+    return;
+  }
+  const r=RECIPES.find(x=>x.id===ui.recipe), m=ui.mult;
+  const fmt=n=>{ const v=n*m; return (v<20&&v%1? v.toFixed(1).replace(".",","):Math.round(v)); };
+  b.innerHTML=`<button class="back" data-act="closeRcp">‹ Alle opskrifter</button>
+    <div class="rcp-head"><h1 style="margin-top:6px;font-size:28px">${r.name}</h1><p class="lede">${r.sub}</p><p class="mini muted">${r.yield} · ${r.time}</p></div>
+    <div class="field"><label>Antal gange opskriften</label><div class="stepper"><button data-act="mult" data-d="-0.5" aria-label="Mindre">−</button><input readonly value="${String(m).replace(".",",")}" aria-label="Gange"><span class="unit">×</span><button data-act="mult" data-d="0.5" aria-label="Mere">+</button></div></div>
+    <h2 style="margin:20px 0 6px">Ingredienser</h2>
+    <ul class="ing num">${r.ing.map(i=>`<li><span>${i[0]}</span><b>${fmt(i[1])} ${i[2]}</b></li>`).join("")}</ul>
+    <h2 style="margin:22px 0 6px">Sådan gør du</h2>
+    <ol class="method">${r.method.map(s=>`<li>${s}</li>`).join("")}</ol>
+    <p class="note">${r.tips}</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn" data-act="rcpPlan" data-id="${r.id}">Planlæg den</button>
+      ${r.calc?`<button class="btn quiet" data-act="rcpCalc" data-id="${r.id}">Åbn i beregner</button>`:""}
+      <button class="btn quiet" data-act="timerSheet">Timer</button>
+    </div>`;
+}
+
+/* ---------- timer ---------- */
+let audioCtx=null;
+function beep(){
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.35,0.7].forEach(off=>{ const o=audioCtx.createOscillator(), gn=audioCtx.createGain(); o.frequency.value=880; o.connect(gn); gn.connect(audioCtx.destination); gn.gain.setValueAtTime(0.25,audioCtx.currentTime+off); gn.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+off+0.3); o.start(audioCtx.currentTime+off); o.stop(audioCtx.currentTime+off+0.3); });
+  }catch(e){}
+  try{ navigator.vibrate&&navigator.vibrate([300,150,300,150,300]); }catch(e){}
+}
+function tick(){
+  const pill=$("#timerPill"), t=state.timer;
+  if(!t){ pill.classList.remove("on","ring"); return; }
+  const left=t.end-Date.now();
+  pill.classList.add("on");
+  if(left<=0){
+    pill.classList.add("ring"); pill.textContent="⏰ "+t.label+" – tryk for at stoppe";
+    if(!t.rang||Date.now()-t.rang>15000){ t.rang=Date.now(); beep(); }
+  } else {
+    pill.classList.remove("ring");
+    const s=Math.ceil(left/1000), mm=Math.floor(s/60), ss=s%60;
+    pill.textContent="⏱ "+t.label+"  "+(mm>=60?Math.floor(mm/60)+":"+pad(mm%60):mm)+":"+pad(ss);
+  }
+}
+function timerStart(min,label){
+  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); audioCtx.resume&&audioCtx.resume(); }catch(e){}
+  state.timer={end:Date.now()+min*MIN,label:label||"Timer"}; save(); tick(); closeModal(); toast("Timer startet: "+dur(min));
+}
+function timerSheet(){
+  const t=state.timer;
+  if(t&&t.end<=Date.now()){ state.timer=null; save(); tick(); return; }
+  openModal(`<h2>Timer</h2>
+    ${t?`<p class="ok">Kører: ${esc(t.label)} – færdig kl. ${hm(t.end)}</p><button class="btn ghost wide" data-act="timerStop">Stop timeren</button><hr>`:""}
+    <p class="muted">Holder øje mens appen er åben. Skærmen kan holdes tændt fra Hjem.</p>
+    <div class="quick" style="margin-top:12px">
+      ${[[30,"Stræk og fold"],[45,"Hvile / autolyse"],[20,"Bag med låg"],[17,"Boller i ovnen"],[60,"Afkøling"],[5,"Kort hvile"]].map(([m,l])=>`<button data-act="timerStart" data-min="${m}" data-label="${l}"><strong>${m} min</strong><span>${l}</span></button>`).join("")}
+    </div>
+    <div class="field" style="margin-top:14px"><label for="tCustom">Eget antal minutter</label><div class="row"><input id="tCustom" class="plain" inputmode="numeric" placeholder="fx 25" style="flex:1"><button class="btn" data-act="timerCustom">Start</button></div></div>
+    <button class="btn ghost wide" style="margin-top:14px" data-act="closeModal">Luk</button>`);
+}
+
+/* ---------- modal ---------- */
+function openModal(html){ $("#modalBox").innerHTML=html; $("#modal").classList.add("on"); }
+function closeModal(){ $("#modal").classList.remove("on"); }
+$("#modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeModal(); });
+
+/* ---------- wake lock ---------- */
+let wake=null;
+async function toggleWake(){
+  try{
+    if(wake){ await wake.release(); wake=null; }
+    else if("wakeLock" in navigator){ wake=await navigator.wakeLock.request("screen"); wake.addEventListener("release",()=>{wake=null;updWake();}); }
+    else { $("#wakeTxt").textContent="Understøttes ikke her. Slå auto-lås fra i telefonens indstillinger."; return; }
+  }catch(e){ $("#wakeTxt").textContent="Ikke tilladt her. Slå auto-lås fra i telefonens indstillinger mens du bager."; wake=null; }
+  updWake();
+}
+function updWake(){ $("#wakeState").textContent=wake?"Til":"Fra"; }
+
+/* ---------- actions ---------- */
+const A={
+  go(el){ location.hash=el.dataset.to; if(el.dataset.open) setTimeout(()=>{ const d=document.getElementById(el.dataset.open); if(d){d.open=true; d.scrollIntoView({behavior:"smooth",block:"start"});} },60); },
+  calcGo(el){ ui.calc=el.dataset.m; if(location.hash==="#brod") renderBrod(); else location.hash="brod"; },
+  brodMode(el){ ui.calc=el.dataset.m; if(el.dataset.m==="rcp") ui.recipe=null; renderBrod(); },
+  pzMode(el){ ui.pz=el.dataset.m; ui.pstyle=null; renderPizza(); },
+  pzOpen(el){ ui.pstyle=el.dataset.id; ui.pcount=4; renderPizza(); window.scrollTo({top:0}); },
+  pzClose(){ ui.pstyle=null; renderPizza(); },
+  pcount(el){ ui.pcount=Math.min(40,Math.max(1,ui.pcount+(+el.dataset.d))); renderPizza(); },
+  pzToCalc(el){ const z=PIZZAS.find(x=>x.id===el.dataset.id); Object.assign(state.pizza,z.calc,{count:ui.pcount}); save(); ui.pz="calc"; ui.pstyle=null; renderPizza(); window.scrollTo({top:0}); },
+  pzPlan(el){ const z=PIZZAS.find(x=>x.id===el.dataset.id); Object.assign(state.pizza,z.calc,{count:ui.pcount}); save(); ui.form=defaultForm("pizza",z.plan); if(state.plan) toast("Du har allerede en aktiv plan"); location.hash="plan"; renderPlan(); },
+  pzPlanCalc(){ const p=state.pizza; const v=p.yt!=="surdej"&&p.pf!=="direkte"?p.pf:p.method==="same"?"same":"cold"; ui.form=defaultForm("pizza",v); if(v==="cold"){ const hrs={"24":24,"48":48,"72":72}[p.method]; let t=at(0,18,30); while(t<Date.now()+(hrs+6)*HOUR) t+=24*HOUR; ui.form.ready=t; } location.hash="plan"; renderPlan(); },
+  pzMethod(el){ const p=state.pizza; p.method=el.dataset.v; suggestYeast(); save(); renderPizza(); },
+  pzYt(el){ const p=state.pizza; p.yt=el.dataset.v; if(p.yt==="surdej") p.pf="direkte"; suggestYeast(); save(); renderPizza(); },
+  pzPf(el){ state.pizza.pf=el.dataset.v; save(); renderPizza(); },
+  useFlour,
+  prep(el){ const b=state[el.dataset.kind], v=el.dataset.v, r=recPrep(el.dataset.kind); b.prep=v; b.prepMin=v==="none"?0:(r.prep===v?r.min:(v==="autolyse"&&el.dataset.kind==="bread"?45:30)); save(); el.dataset.kind==="pizza"?renderPizza():renderBrod(); },
+  usePrep(el){ const k=el.dataset.kind, r=recPrep(k); state[k].prep=r.prep; state[k].prepMin=r.min; save(); k==="pizza"?renderPizza():renderBrod(); },
+  mixer(el){ state.mixer=el.dataset.v; state.water.fric=el.dataset.v==="famag"?8:2; save(); if(el.dataset.kind==="water") waterSheet(); else if(el.dataset.kind==="pizza") renderPizza(); else renderBrod(); },
+  setv(el){ const k=el.dataset.k, v=+el.dataset.v; set(k,v); save(); document.querySelectorAll(`[data-bind="${k}"]`).forEach(i=>i.value=v); document.querySelectorAll(`[data-act="setv"][data-k="${k}"]`).forEach(b=>b.setAttribute("aria-pressed",b.dataset.v==v)); calcOut(); },
+  malt(el){ const b=state[el.dataset.kind], v=el.dataset.v; b.maltType=v; b.malt=v==="aktiv"?0.5:v==="inaktiv"?2:0; save(); renderBrod(); },
+  ddt(el){ ui.ddtL=el.dataset.l; state.water.ddt=+el.dataset.v; save(); waterSheet(); },
+  fric(el){ state.mixer=+el.dataset.v>3?"famag":"hand"; state.water.fric=+el.dataset.v; save(); waterSheet(); },
+  nsStart(el){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-(+el.dataset.back||0)); state.ns={start:d.getTime(),done:{},finished:null}; save(); renderAll(); toast("Guiden er startet – dag "+nsDay()); },
+  nsTask(el){ const n=state.ns; n.done[el.dataset.k]=!n.done[el.dataset.k]; save(); renderAll(); },
+  nsShift(el){ state.ns.start+=(+el.dataset.d)*86400000; save(); renderAll(); },
+  nsDone(){ state.ns.finished=Date.now(); save(); renderAll(); toast("Tillykke – din surdej er klar!"); },
+  nsStop(){ state.ns=null; save(); renderAll(); },
+  waterSheet,
+  invAdd(el){ const it=invItems()[+el.dataset.i]; it.kg=Math.max(0,Math.round(((it.kg||0)+(+el.dataset.v))*100)/100); save(); renderMel(); updBadge(); },
+  invShops(el){ const i=+el.dataset.i; ui.invOpen=ui.invOpen===i?-1:i; renderMel(); },
+  invOrder(el){ const it=invItems()[+el.dataset.i]; it.ordered=Date.now(); ui.invOpen=-1; save(); renderMel(); updBadge(); toast("Markeret som bestilt"); },
+  invGot(el){ const it=invItems()[+el.dataset.i]; it.kg=Math.round(((it.kg||0)+it.pack)*100)/100; it.ordered=null; save(); renderMel(); updBadge(); toast("Lageret er opdateret"); },
+  invUnorder(el){ invItems()[+el.dataset.i].ordered=null; save(); renderMel(); updBadge(); },
+  invEdit(el){ invEditSheet(+el.dataset.i); },
+  invNew(){ invEditSheet(-1); },
+  invSave(el){
+    const i=+el.dataset.i, name=$("#ivName").value.trim(); if(!name){ toast("Giv melet et navn"); return; }
+    const it=i>=0?invItems()[i]:{key:"egen-"+Date.now(),q:name};
+    it.name=name; it.kg=num($("#ivKg").value); it.min=num($("#ivMin").value)??1; it.pack=num($("#ivPack").value)??1; it.cat=$("#ivCat").value;
+    if(i<0) invItems().push(it);
+    save(); closeModal(); renderMel(); updBadge();
+  },
+  invDel(el){ invItems().splice(+el.dataset.i,1); save(); closeModal(); renderMel(); updBadge(); },
+  step(el){
+    const k=el.dataset.k, d=parseFloat(el.dataset.d);
+    let v=Math.round((parseFloat(get(k))+d)*1000)/1000;
+    const lim={"bread.count":[1,20],"buns.count":[1,60],"feed.need":[10,2000],"feed.temp":[14,32],"pizza.count":[1,40],"pizza.weight":[150,500],"pizza.pfPct":[10,100],"bread.prepMin":[10,180],"buns.prepMin":[10,120],"pizza.prepMin":[10,120]};
+    const [lo,hi]=lim[k]||[0,10000]; v=Math.min(hi,Math.max(lo,v));
+    set(k,v); syncPizzaW(k); save();
+    document.querySelectorAll(`[data-bind="${k}"]`).forEach(inp=>{ if(inp!==document.activeElement) inp.value=String(v).replace(".",","); });
+    if(k.startsWith("water.")||$("#waterOut")) waterOut(); else if(k.startsWith("feed.")) feedOut(); else calcOut();
+  },
+  ratio(el){ state.feed.ratio=+el.dataset.r; save(); renderStarter(); },
+  logFeed(){ state.feeds.push({t:Date.now(),ratio:state.feed.ratio,temp:state.feed.temp}); if(state.feeds.length>60) state.feeds=state.feeds.slice(-60); save(); toast("Fodring gemt"); renderAll(); },
+  delFeed(el){ state.feeds=state.feeds.filter(f=>f.t!=+el.dataset.t); save(); renderAll(); },
+  presetBuns(){
+    const h=new Date().getHours();
+    ui.form=defaultForm("buns", h>=17?"morning":"evening");
+    if(ui.form.levain==="feed") ui.form.levain="cold";
+    ui.form.ready=at(1,7,30);
+    location.hash="plan"; renderPlan();
+  },
+  planFrom(el){ ui.form=defaultForm(el.dataset.r); location.hash="plan"; renderPlan(); },
+  pf(el){ const k=el.dataset.k; let v=el.dataset.v; if(k==="ratio") v=+v; ui.form[k]=v; if(k==="prep"&&v!=="none"&&!(ui.form.prepMin>0)) ui.form.prepMin=30; if(k==="recipe"){ const st=ui.form.start; ui.form=defaultForm(v); ui.form.start=st; fitReady(ui.form); } renderPlan(); },
+  pfNow(){ ui.form.start=round5(Date.now()); renderPlan(); },
+  pfHome(){ const f=ui.form; f.start=nextAt(state.homeTime); if(f.levain==="feed"){ const r=bestRatio(f.start,f.temp); if(r) f.ratio=r; } f.ready=TEMPLATES[f.recipe].ready(); fitReady(f); renderPlan(); },
+  pfPrep(el){ ui.form.prepMin=Math.min(180,Math.max(15,ui.form.prepMin+(+el.dataset.d))); renderPlan(); },
+  pfStartAt(el){ ui.form.start=at(1,+el.dataset.h,0); fitReady(ui.form); renderPlan(); },
+  pfTemp(el){ ui.form.temp=Math.min(32,Math.max(14,ui.form.temp+(+el.dataset.d))); renderPlan(); },
+  startPlan(){
+    const p=buildPlan(ui.form); p.done={}; p.created=Date.now(); state.plan=p; save(); toast("Planen er startet"); renderAll(); window.scrollTo({top:0});
+  },
+  toggleStep(el){ const i=+el.dataset.i, p=state.plan; if(!p) return; p.done=p.done||{}; p.done[i]=!p.done[i]; save(); renderAll(); },
+  shift(el){
+    const p=state.plan, d=+el.dataset.min*MIN; const first=p.steps.findIndex((s,i)=>!p.done[i]); if(first<0) return;
+    p.steps.forEach((s,i)=>{ if(i>=first){ s.s+=d; s.e+=d; if(s.subs) s.subs.forEach(x=>x.at+=d); } }); p.ready+=d; save(); renderAll(); toast(d>0?"Resten er udskudt 30 min":"Resten er rykket 30 min frem");
+  },
+  cancelPlan(){ openModal(`<h2>Slet planen?</h2><p class="muted">Den bliver ikke gemt i loggen.</p><div class="row" style="margin-top:14px"><button class="btn" data-act="cancelYes">Slet</button><button class="btn ghost" data-act="closeModal">Behold</button></div>`); },
+  cancelYes(){ state.plan=null; save(); closeModal(); renderAll(); },
+  finishPlan(){ ui.rating=4; openModal(finishHtml()); },
+  rate(el){ ui.rating=+el.dataset.v; const n=$("#fNote").value; openModal(finishHtml()); $("#fNote").value=n; },
+  finishYes(){ const p=state.plan; state.log.push({recipe:p.recipe,t:Date.now(),name:TEMPLATES[p.recipe].name+" – "+TEMPLATES[p.recipe].variants[p.variant].toLowerCase(),rating:ui.rating,note:$("#fNote").value.trim(),temp:p.temp}); state.plan=null; save(); closeModal(); toast("Gemt i loggen"); location.hash="hjem"; renderAll(); },
+  openRcp(el){ ui.recipe=el.dataset.id; ui.mult=1; ui.calc="rcp"; renderBrod(); window.scrollTo({top:0}); },
+  closeRcp(){ ui.recipe=null; renderRecipes(); },
+  mult(el){ ui.mult=Math.min(10,Math.max(0.5,ui.mult+(+el.dataset.d))); renderRecipes(); },
+  rcpPlan(el){ const r=RECIPES.find(x=>x.id===el.dataset.id); ui.form=defaultForm(r.plan.recipe,r.plan.variant); if(state.plan) toast("Du har allerede en aktiv plan"); location.hash="plan"; renderPlan(); },
+  rcpCalc(el){ const r=RECIPES.find(x=>x.id===el.dataset.id); Object.assign(state[r.type],r.calc); if(ui.mult!==1) state[r.type].count=Math.max(1,Math.round(state[r.type].count*ui.mult)); save(); ui.calc=r.type; renderBrod(); window.scrollTo({top:0}); },
+  timerSheet, timerStart(el){ timerStart(+el.dataset.min, el.dataset.label); },
+  timerCustom(){ const v=parseFloat(($("#tCustom").value||"").replace(",",".")); if(v>0) timerStart(v,"Timer"); },
+  timerStop(){ state.timer=null; save(); tick(); closeModal(); },
+  closeModal, wake:toggleWake,
+  backup(){ openModal(`<h2>Sikkerhedskopi</h2><p class="muted">Dine data ligger kun på denne telefon. Gem en kopi af og til – især før du rydder Chromes data eller skifter telefon.</p>
+    <div class="row" style="margin-top:14px"><button class="btn" data-act="exportData">Gem kopi</button><button class="btn quiet" data-act="importData">Hent fra fil</button></div>
+    <input type="file" id="impFile" accept="application/json,.json" hidden>
+    <button class="btn ghost wide" style="margin-top:14px" data-act="closeModal">Luk</button>`); },
+  exportData(){ const b=new Blob([JSON.stringify(state)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="surdej-backup-"+new Date().toISOString().slice(0,10)+".json"; document.body.appendChild(a); a.click(); a.remove(); toast("Kopi gemt i Downloads"); },
+  importData(){ const f=$("#impFile"); f.onchange=()=>{ const file=f.files[0]; if(!file) return; file.text().then(t=>{ try{ state=merge(JSON.parse(t)); save(); closeModal(); renderAll(); toast("Data hentet"); }catch(e){ toast("Filen kunne ikke læses"); } }); }; f.click(); }
+};
+function finishHtml(){
+  return `<h2>Hvordan blev det?</h2><p class="muted">Gem en note til næste gang – fx hvad du vil ændre.</p>
+  <div class="stars" style="margin-top:12px">${[1,2,3,4,5].map(v=>`<button data-act="rate" data-v="${v}" aria-pressed="${ui.rating===v}" aria-label="${v} stjerner">${v} ★</button>`).join("")}</div>
+  <div class="field" style="margin-top:14px"><label for="fNote">Note</label><textarea id="fNote" placeholder="Fx: 30 min længere bulk, lidt mindre vand"></textarea></div>
+  <div class="row" style="margin-top:14px"><button class="btn" data-act="finishYes">Gem i loggen</button><button class="btn ghost" data-act="closeModal">Annullér</button></div>`;
+}
+document.addEventListener("click",e=>{ const a=e.target.closest("[data-act]"); if(!a) return; const f=A[a.dataset.act]; if(f){ e.preventDefault(); f(a); } });
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(el.dataset.bind){
+    const k=el.dataset.bind;
+    if(el.tagName==="SELECT"){ set(k,el.value); }
+    else { const v=parseFloat(String(el.value).replace(",",".")); if(isNaN(v)) return; set(k,v); }
+    syncPizzaW(k);
+    save(); if(k.startsWith("water.")||$("#waterOut")) waterOut(); else if(k.startsWith("feed.")) feedOut(); else calcOut();
+  }
+});
+document.addEventListener("change",e=>{
+  const el=e.target;
+  if(el.dataset.shape&&el.value!==""){ const kd=el.dataset.shape, x=SHAPES[kd][+el.value]; state[kd].weight=x[1]; save(); const i=document.querySelector(`[data-bind="${kd}.weight"]`); if(i) i.value=x[1]; calcOut(); toast(x[0]+": "+x[1]+" g"); return; }
+  if(el.id==="pfHomeTime"&&el.value){ state.homeTime=el.value; save(); renderPlan(); return; }
+  if(el.dataset.pf){
+    const k=el.dataset.pf;
+    if(k==="start"||k==="ready"){ const t=new Date(el.value).getTime(); if(!isNaN(t)) ui.form[k]=t; }
+    else if(k==="temp"){ const v=parseFloat(el.value); if(!isNaN(v)) ui.form.temp=Math.min(32,Math.max(14,v)); }
+    else ui.form[k]=el.value;
+    renderPlan();
+  }
+});
+
+/* ---------- routing ---------- */
+const TABS=["hjem","surdej","brod","pizza","plan","mel"];
+function route(){
+  let h=(location.hash||"").replace("#","");
+  if(h==="beregn"||h==="opskrifter") h="brod";
+  ui.tab=TABS.includes(h)?h:"hjem";
+  TABS.forEach(t=>{ $("#v-"+t).classList.toggle("on",t===ui.tab); const a=$(`nav a[data-tab="${t}"]`); if(t===ui.tab) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+  renderTab(); window.scrollTo({top:0});
+}
+function renderTab(){
+  ({hjem:renderHome,surdej:renderStarter,brod:renderBrod,pizza:renderPizza,plan:renderPlan,mel:renderMel})[ui.tab]();
+}
+function renderAll(){ renderTab(); tick(); updBadge(); }
+function syncPizzaW(k){
+  if(k!=="pizza.diam"&&k!=="pizza.thick") return;
+  const p=state.pizza; p.diam=Math.min(45,Math.max(18,p.diam)); p.weight=pizzaW(p.diam,(THICK[p.thick]||THICK.napoletana)[1]);
+  const i=document.querySelector('[data-bind="pizza.weight"]'); if(i) i.value=p.weight;
+}
+function suggestYeast(){
+  const p=state.pizza;
+  if(p.yt==="surdej") p.yeast=YEAST_SUGGEST.surdej[p.method];
+  else { const fr=YEAST_SUGGEST.frisk[p.method]; p.yeast=p.yt==="tor"?Math.round(fr/3*1000)/1000:fr; }
+}
+window.addEventListener("hashchange",route);
+route();
+setInterval(()=>{
+  tick();
+  const active=document.activeElement, typing=active&&(active.tagName==="INPUT"||active.tagName==="SELECT"||active.tagName==="TEXTAREA");
+  if(typing||$("#modal").classList.contains("on")) return;
+},1000);
+setInterval(()=>{ const ae=document.activeElement; if(ae&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)) return; if(ui.tab==="hjem") renderHome(); else if(ui.tab==="plan"&&state.plan) renderPlan(); else if(ui.tab==="surdej") renderStarter(); },30000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ renderAll(); if(wake===null&&$("#wakeState").textContent==="Til") toggleWake(); } });
+})();
+if("serviceWorker" in navigator){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
+</script>
+</body>
+</html>
