@@ -486,7 +486,16 @@ const NS_FAST=[
   {t:"Dag 4 · To fodringer",tasks:["Morgen: Behold 25 g. Fodr med 25 g rug, 25 g hvede og 50 g vand (ca. {W} °C).","Aften: Samme fodring igen. Kig på elastikken."],expect:"Den bør begynde at hæve tydeligt og dufte friskt syrligt."},
   {t:"Dag 5 · Klar-test",tasks:["Morgen: Behold 25 g. Fodr 1:2:2 med 40 g hvedemel, 10 g rug og 50 g vand (ca. {W} °C).","Hold øje med elastikken de næste 4–8 timer."],expect:"Fordobler den sig inden for 4–8 timer, med hvælvet top? Så er den klar. Ellers giver guiden dig ekstra dage – det er helt normalt.",test:true}
 ];
-function nsList(){ return state.ns&&state.ns.plan==="5"?NS_FAST:NS_DAYS.slice(0,7); }
+const NS_CARD=[
+  {t:"Dag 1 · Bland",tasks:["Bland 100 g vand, 30 g rugmel og 35 g hvedemel i en skål eller et glas.","Rør rundt, til der ikke er flere klumper.","Læg låget løst over, så der kan komme lidt luft ind. Stil den ved stuetemperatur, 20–21 °C."],expect:"Hold siderne rene med en dejskraber – det gælder hver dag."},
+  {t:"Dag 2 · Rør rundt",tasks:["Rør rundt i den unge surdej, og lad den hvile til i morgen."],expect:"Der sker måske ikke så meget endnu. Det er helt normalt."},
+  {t:"Dag 3 · Fodring",tasks:["Tilsæt 100 g vand, 30 g rugmel og 35 g hvedemel.","Rør rundt, til der ikke er flere klumper. Lad den hvile til i morgen."],expect:"Nu begynder den som regel at få liv."},
+  {t:"Dag 4 · Bobler?",tasks:["Er der kommet bobler: Rør bare rundt og lad den hvile til i morgen.","Ingen bobler: Tilsæt igen 100 g vand, 30 g rugmel og 35 g hvedemel, rør til der ikke er klumper, og lad den hvile."],expect:"Sæt kun flueben ved det af de to punkter, du gør."},
+  {t:"Dag 5 · To fodringer",tasks:["Morgen: Fjern 50 g (ca. ½ dl) surdej, før du rører rundt. Tilsæt 100 g vand, 35 g rugmel og 30 g hvedemel. Rør til der ikke er klumper. Hvil 8–12 timer.","Aften: Fjern 100 g surdej. Tilsæt 80 g vand, 30 g rugmel og 60 g hvedemel. Rør til der ikke er klumper."],expect:"Den bør nu hæve og boble tydeligt mellem fodringerne."},
+  {t:"Dag 6 · Flydetest",tasks:["Morgen: Fjern 100 g surdej. Tilsæt 80 g vand, 30 g rugmel og 60 g hvedemel. Rør til der ikke er klumper.","Aften: Før du rører i den, så tag en teskefuld surdej og læg den i et glas vand. Flyder den?"],expect:"Flyder den, er den klar til brug. Ellers fodrer du den igen og gentager dag 6 i morgen.",test:true,testLabel:"Den flyder – den er klar"}
+];
+const NS_CARD_EXTRA={t:"Gentag dag 6",tasks:["Morgen: Fjern 100 g surdej. Tilsæt 80 g vand, 30 g rugmel og 60 g hvedemel. Rør til der ikke er klumper.","Aften: Flydetest – en teskefuld surdej i et glas vand, før du rører i den."],expect:"Flyder den, er den klar. Ellers fodr igen og gentag i morgen. Tålmodighed bliver belønnet.",test:true,testLabel:"Den flyder – den er klar"};
+function nsList(){ const pl=state.ns&&state.ns.plan; return pl==="5"?NS_FAST:pl==="6"?NS_CARD:NS_DAYS.slice(0,7); }
 function nsLen(){ return nsList().length; }
 const SHAPES={
   bread:[["Rund hævekurv 20 cm",750],["Rund hævekurv 22 cm",900],["Rund hævekurv 25 cm",1100],["Aflang hævekurv 25 cm",800],["Aflang hævekurv 30 cm",1000],["Aflang hævekurv 35 cm",1300],["Brødform 1 liter",750],["Brødform 1,5 liter",1100],["Brødform 2 liter",1400],["Bâtard til 2–3 personer",500],["Baguette",350]],
@@ -823,18 +832,18 @@ function renderHome(){
 function nsDay(){ if(!state.ns) return 0; const b=new Date(); b.setHours(0,0,0,0); return Math.max(1,Math.round((b-state.ns.start)/86400000)+1); }
 function nsCard(full){
   const n=state.ns; if(!n) return "";
-  if(n.finished) return full?`<div class="ok"><b>Din nye surdej blev klar ${new Date(n.finished).toLocaleDateString("da-DK",{day:"numeric",month:"long"})}.</b> Brug den 4–8 timer efter fodring. <button class="btn small quiet" data-act="nsStop">Skjul</button></div>`:"";
-  const N=nsLen(), LST=nsList(), day=nsDay(), D=day<=N?LST[day-1]:NS_DAYS[7], W=waterFor(DDT.feed,false,null,0);
+  if(n.finished) return full?`<div class="ok"><b>Din nye surdej blev klar ${new Date(n.finished).toLocaleDateString("da-DK",{day:"numeric",month:"long"})}.</b> ${n.plan==="6"?"Stil den i køleskabet. 1–2 dage før du bager: tag 10 g og fodr med 30 g vand og 30 g hvedemel (1:3:3). 12–18 timer senere fodrer du med 70 g vand og 70 g hvedemel (1:1:1) – dagen efter har du 210 g frisk surdej. Ellers fodr med 80 g vand og 80 g hvedemel: en gang om ugen i køleskab, hver 3. dag ved stuetemperatur.":"Brug den 4–8 timer efter fodring."} <button class="btn small quiet" data-act="nsStop">Skjul</button></div>`:"";
+  const N=nsLen(), LST=nsList(), day=nsDay(), D=day<=N?LST[day-1]:(n.plan==="6"?NS_CARD_EXTRA:NS_DAYS[7]), W=waterFor(DDT.feed,false,null,0);
   const tasks=D.tasks.map((t,i)=>{ const k=day+"-"+i, done=!!n.done[k];
     return `<li style="display:flex;gap:10px;align-items:flex-start;padding:6px 0"><button class="chk" style="width:30px;height:30px;border-radius:9px;border:2px solid var(--line);background:${done?"var(--leaven)":"var(--surface)"};color:var(--surface);flex:none" data-act="nsTask" data-k="${k}" aria-pressed="${done}" aria-label="Udført">${done?"✓":""}</button><span style="${done?"opacity:.55":""}">${esc(t.replace("{W}",W))}</span></li>`; }).join("");
   const dots=Array.from({length:N},(_,i)=>`<i style="flex:1;height:6px;border-radius:3px;background:${i+1<day?"var(--leaven)":i+1===day?"var(--accent)":"var(--sunk)"}"></i>`).join("");
-  return `<div class="now" style="margin-bottom:16px"><span class="kind-tag"><i style="background:var(--accent)"></i>Ny surdej · ${n.plan==="5"?"hurtig, ":""}${day<=N?"dag "+day+" af "+N:"dag "+day}</span>
+  return `<div class="now" style="margin-bottom:16px"><span class="kind-tag"><i style="background:var(--accent)"></i>Ny surdej · ${n.plan==="5"?"hurtig, ":n.plan==="6"?"opskriftskortet, ":""}${day<=N?"dag "+day+" af "+N:"dag "+day}</span>
     <div style="display:flex;gap:4px;margin:10px 0 2px">${dots}</div>
     <div class="what">${esc(D.t)}</div>
     <ul style="list-style:none;padding:0;margin:8px 0">${tasks}</ul>
     <p class="muted mini">${esc(D.expect)}</p>
-    ${D.test?`<div class="row" style="margin-top:10px"><button class="btn" data-act="nsDone">Den fordobler sig – den er klar</button></div><p class="mini muted">Ikke endnu? Fortsæt i morgen – guiden giver dig næste dag.</p>`:""}
-    ${full?`<div class="row" style="margin-top:12px"><button class="btn small quiet" data-act="nsShift" data-d="1">Ryk en dag tilbage</button><button class="btn small quiet" data-act="nsShift" data-d="-1">Spring en dag frem</button><button class="btn small ghost" data-act="nsStop">Stop guiden</button>${day<=3?`<button class="btn small quiet" data-act="nsPlan" data-v="${n.plan==="5"?"7":"5"}">Skift til ${n.plan==="5"?"7 dage":"5 dage"}</button>`:""}</div>
+    ${D.test?`<div class="row" style="margin-top:10px"><button class="btn" data-act="nsDone">${esc(D.testLabel||"Den fordobler sig – den er klar")}</button></div><p class="mini muted">Ikke endnu? Fortsæt i morgen – guiden giver dig næste dag.</p>`:""}
+    ${full?`<div class="row" style="margin-top:12px"><button class="btn small quiet" data-act="nsShift" data-d="1">Ryk en dag tilbage</button><button class="btn small quiet" data-act="nsShift" data-d="-1">Spring en dag frem</button><button class="btn small ghost" data-act="nsStop">Stop guiden</button>${day<=3&&n.plan!=="6"?`<button class="btn small quiet" data-act="nsPlan" data-v="${n.plan==="5"?"7":"5"}">Skift til ${n.plan==="5"?"7 dage":"5 dage"}</button>`:""}</div>
       <details style="margin-top:12px"><summary>Hele forløbet</summary><div class="dbody">${LST.map((x,i)=>`<p style="${i+1<day?"opacity:.55":""}"><b>${esc(x.t)}${i+1===day?" · i dag":""}</b><br>${esc(x.tasks.join(" ").replace(/\{W\}/g,W))}</p>`).join("")}</div></details>`:`<a class="btn small ghost" href="#surdej" style="margin-top:10px">Hele forløbet</a>`}
   </div>`;
 }
@@ -842,6 +851,8 @@ function renderStarter(){
   $("#nsSec").innerHTML = state.ns ? nsCard(true) : `<div class="note" style="margin-bottom:16px"><strong>Ny surdej fra bunden?</strong><p>Appen guider dig dag for dag – med mængder, vandtemperatur og hvad du kan forvente. Dagens opgaver vises på forsiden.</p>
   <p class="mini"><b>7 dage:</b> Den sikre vej ved almindelig stuetemperatur.<br><b>5 dage:</b> Kræver 26–28 °C, fuldkornsrug og to fodringer om dagen fra dag 3. Den lykkes ofte, men ikke altid – bliver den ikke klar, giver guiden dig bare ekstra dage.</p>
   <div class="row" style="margin-top:10px"><button class="btn" data-act="nsStart" data-plan="7" data-back="0">Start 7 dage</button><button class="btn" data-act="nsStart" data-plan="5" data-back="0">Start 5 dage</button></div>
+  <p class="mini" style="margin-top:12px"><b>Opskriftskortet, 6 dage:</b> Din egen opskrift med rug og hvede ved 20–21 °C, to fodringer dag 5–6 og flydetest.</p>
+  <div class="row" style="margin-top:8px"><button class="btn quiet" data-act="nsStart" data-plan="6" data-back="0">Start opskriftskortet</button><button class="btn small quiet" data-act="nsStart" data-plan="6" data-back="1">Kortet – startede i går</button></div>
   <div class="row" style="margin-top:8px"><button class="btn small quiet" data-act="nsStart" data-plan="7" data-back="1">7 dage – startede i går</button><button class="btn small quiet" data-act="nsStart" data-plan="5" data-back="1">5 dage – startede i går</button></div></div>`;
   const si=starterInfo(), el=$("#starterStatus");
   if(si){
