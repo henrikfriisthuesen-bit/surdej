@@ -842,10 +842,17 @@ function nsCard(full){
     <div class="what">${esc(D.t)}</div>
     <ul style="list-style:none;padding:0;margin:8px 0">${tasks}</ul>
     <p class="muted mini">${esc(D.expect)}</p>
+    ${nsTomorrow(n,day,N,LST,W,D)}
     ${D.test?`<div class="row" style="margin-top:10px"><button class="btn" data-act="nsDone">${esc(D.testLabel||"Den fordobler sig – den er klar")}</button></div><p class="mini muted">Ikke endnu? Fortsæt i morgen – guiden giver dig næste dag.</p>`:""}
     ${full?`<div class="row" style="margin-top:12px"><button class="btn small quiet" data-act="nsShift" data-d="1">Ryk en dag tilbage</button><button class="btn small quiet" data-act="nsShift" data-d="-1">Spring en dag frem</button><button class="btn small ghost" data-act="nsStop">Stop guiden</button>${day<=3&&n.plan!=="6"?`<button class="btn small quiet" data-act="nsPlan" data-v="${n.plan==="5"?"7":"5"}">Skift til ${n.plan==="5"?"7 dage":"5 dage"}</button>`:""}</div>
       <details style="margin-top:12px"><summary>Hele forløbet</summary><div class="dbody">${LST.map((x,i)=>`<p style="${i+1<day?"opacity:.55":""}"><b>${esc(x.t)}${i+1===day?" · i dag":""}</b><br>${esc(x.tasks.join(" ").replace(/\{W\}/g,W))}</p>`).join("")}</div></details>`:`<a class="btn small ghost" href="#surdej" style="margin-top:10px">Hele forløbet</a>`}
   </div>`;
+}
+function nsTomorrow(n,day,N,LST,W,D){
+  const nx=day+1<=N?LST[day]:(n.plan==="6"?NS_CARD_EXTRA:NS_DAYS[7]);
+  const morning=nx.tasks.some(t=>/^Morgen/.test(t));
+  const first=nx.tasks[0].replace(/\{W\}/g,W);
+  return `<div class="${morning?"warn":"note"}" style="margin-top:12px"><b>${morning?"⏰ I morgen tidlig":"I morgen"} · ${esc(nx.t)}</b>${D.test?"<br><span class=\"mini\">Hvis den ikke er klar i dag:</span>":""}<br>${esc(first)}${nx.tasks.length>1?`<br><span class="mini muted">+ ${nx.tasks.length-1} opgave${nx.tasks.length>2?"r":""} mere i løbet af dagen</span>`:""}${morning?`<br><span class="mini">Starter om morgenen – sæt evt. en alarm, og sørg for at have mel nok.</span>`:""}</div>`;
 }
 function renderStarter(){
   $("#nsSec").innerHTML = state.ns ? nsCard(true) : `<div class="note" style="margin-bottom:16px"><strong>Ny surdej fra bunden?</strong><p>Appen guider dig dag for dag – med mængder, vandtemperatur og hvad du kan forvente. Dagens opgaver vises på forsiden.</p>
