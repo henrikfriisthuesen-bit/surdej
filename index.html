@@ -495,6 +495,21 @@ const NS_CARD=[
   {t:"Dag 6 · Flydetest",tasks:["Morgen: Fjern 100 g surdej. Tilsæt 80 g vand, 30 g rugmel og 60 g hvedemel. Rør til der ikke er klumper.","Aften: Før du rører i den, så tag en teskefuld surdej og læg den i et glas vand. Flyder den?"],expect:"Flyder den, er den klar til brug. Ellers fodrer du den igen og gentager dag 6 i morgen.",test:true,testLabel:"Den flyder – den er klar"}
 ];
 const NS_CARD_EXTRA={t:"Gentag dag 6",tasks:["Morgen: Fjern 100 g surdej. Tilsæt 80 g vand, 30 g rugmel og 60 g hvedemel. Rør til der ikke er klumper.","Aften: Flydetest – en teskefuld surdej i et glas vand, før du rører i den."],expect:"Flyder den, er den klar. Ellers fodr igen og gentag i morgen. Tålmodighed bliver belønnet.",test:true,testLabel:"Den flyder – den er klar"};
+const NH={
+  warm:"Stil den lunere: 24–26 °C er ideelt – fx i ovnen med kun lyset tændt og lågen på klem, eller oven på køleskabet.",
+  rye:"Skift 10–15 g af hvedemelet ud med fuldkornsrug ved næste fodring. Rugen er fuld af mikrober og sætter gang i den.",
+  water:"Har I meget klor i vandet, så brug vand, der har stået fremme et par timer, eller kogt og afkølet vand.",
+  wait:"Spring næste fodring over og rør bare rundt. En træg surdej har brug for tid – ikke mere mel, der fortynder den. Tryk derefter Ryk en dag tilbage under Surdej, så følger guiden med.",
+  hyd:"Er den meget våd, slipper boblerne op og forsvinder. Vælg 100 % hydrering i guiden, så bliver boblerne synlige.",
+  falseStart:"Var der masser af bobler for et par dage siden og nu næsten ingen? Det er den falske start – bakterierne er ved at give plads til gæren. Fortsæt planen.",
+  smell:"Dufter den syrligt, af alkohol eller neglelak, er den i live – den er bare sulten. Fodr som planlagt.",
+  band:"Sæt en elastik ud for overfladen lige efter fodring. Så kan du se selv små stigninger, som er nemme at overse.",
+  early:"Mange surdeje kommer først i gang på dag 4–5. Fortsæt planen – det er helt normalt.",
+  notYet:"Ikke klar endnu? Helt normalt. Guiden fortsætter selv med ekstra dage – nogle surdeje skal bruge 10–14 dage.",
+  float:"Flydetesten er usikker, især for en våd surdej. Har den bobler, en hvælvet top og dufter friskt syrligt, så brug elastik-testen i stedet: fordobles den inden for 4–8 timer efter fodring, er den klar."
+};
+[[2,["early","warm","band"]],[3,["falseStart","warm","water"]],[4,["wait","warm","rye"]],[5,["warm","rye","smell","band"]],[6,["notYet","warm","rye"]],[7,["warm","rye","water","band"]]].forEach(([i,h])=>NS_DAYS[i].help=h);
+[[1,["early","warm"]],[2,["falseStart","warm","rye"]],[3,["warm","rye","smell","band"]],[4,["notYet","warm","rye"]]].forEach(([i,h])=>NS_FAST[i].help=h);
 function cardDays(n){
   const H=n&&n.hyd||null, done=(n&&n.done)||{}, act=(n&&n.actual)||{};
   const wat=(orig,r,h)=>H?Math.min(orig,Math.round((r+h)*H/100)):orig;
@@ -520,10 +535,14 @@ function cardDays(n){
   d.push({t:"Dag 5 · To fodringer",tasks:["Morgen: Behold "+k5.k+" g surdej (fjern ca. 50 g), før du rører rundt. Tilsæt "+f5+". Rør til der ikke er klumper. Hvil 8–12 timer.","Aften: Behold "+k5a.k+" g surdej (fjern ca. 100 g). Tilsæt "+f5a+". Rør til der ikke er klumper."],weigh:[{key:"d5m",plan:p5},{key:"d5a",plan:p5a}],expect:"Den bør nu hæve og boble tydeligt mellem fodringerne."+(undecided?" Mængderne er regnet ud fra, at du kun rørte rundt på dag 4.":"")});
   const p6=Math.max(10,M-100), k6=keep(100,"d6m"), f6=feed(80,30,60,k6.f);
   d.push({t:"Dag 6 · Flydetest",tasks:["Morgen: Behold "+k6.k+" g surdej (fjern ca. 100 g). Tilsæt "+f6+". Rør til der ikke er klumper.","Aften: Før du rører i den, så tag en teskefuld surdej og læg den i et glas vand. Flyder den?"],weigh:[{key:"d6m",plan:p6},null],expect:"Flyder den, er den klar til brug. Ellers fodrer du den igen og gentager dag 6 i morgen.",test:true,testLabel:"Den flyder – den er klar"});
+  d[2].help=["early","warm","band",...(H&&H<=100?[]:["hyd"])];
+  d[3].help=["warm","water","rye",...(H&&H<=100?[]:["hyd"])];
+  d[4].help=["wait","warm","rye",...(H&&H<=100?[]:["hyd"]),"smell"];
+  d[5].help=["float","warm","rye","notYet"];
   const E=M;
   const extra=i=>{ M=E; let k,f,pl;
     for(let x=1;x<=i;x++){ pl=Math.max(10,M-100); const r=keep(100,"x"+x); k=r.k; f=feed(80,30,60,r.f); }
-    return {t:"Gentag dag 6",tasks:["Morgen: Behold "+k+" g surdej (fjern ca. 100 g). Tilsæt "+f+". Rør til der ikke er klumper.","Aften: Flydetest – en teskefuld surdej i et glas vand, før du rører i den."],weigh:[{key:"x"+i,plan:pl},null],expect:"Flyder den, er den klar. Ellers fodr igen og gentag i morgen. Tålmodighed bliver belønnet.",test:true,testLabel:"Den flyder – den er klar"}; };
+    return {t:"Gentag dag 6",tasks:["Morgen: Behold "+k+" g surdej (fjern ca. 100 g). Tilsæt "+f+". Rør til der ikke er klumper.","Aften: Flydetest – en teskefuld surdej i et glas vand, før du rører i den."],weigh:[{key:"x"+i,plan:pl},null],expect:"Flyder den, er den klar. Ellers fodr igen og gentag i morgen. Tålmodighed bliver belønnet.",test:true,testLabel:"Den flyder – den er klar",help:["float","warm","rye","water"]}; };
   return {days:d,extra};
 }
 function nsList(){ const pl=state.ns&&state.ns.plan; return pl==="5"?NS_FAST:pl==="6"?cardDays(state.ns).days:NS_DAYS.slice(0,7); }
@@ -879,6 +898,7 @@ function nsCard(full){
     <div class="what">${esc(D.t)}</div>
     <ul style="list-style:none;padding:0;margin:8px 0">${tasks}</ul>
     <p class="muted mini">${esc(D.expect)}</p>
+    ${D.help?`<details class="nohelp" style="margin:10px 0 0;background:var(--sunk);border:0"><summary style="font-size:16px;padding:12px 14px">Ingen bobler? Det kan du gøre</summary><div class="dbody"><ul style="padding-left:20px;margin:0">${D.help.map(k=>`<li>${esc(NH[k])}</li>`).join("")}</ul></div></details>`:""}
     ${nsTomorrow(n,day,N,LST,W,D)}
     ${D.test?`<div class="row" style="margin-top:10px"><button class="btn" data-act="nsDone">${esc(D.testLabel||"Den fordobler sig – den er klar")}</button></div><p class="mini muted">Ikke endnu? Fortsæt i morgen – guiden giver dig næste dag.</p>`:""}
     ${full?`<div class="row" style="margin-top:12px"><button class="btn small quiet" data-act="nsShift" data-d="1">Ryk en dag tilbage</button><button class="btn small quiet" data-act="nsShift" data-d="-1">Spring en dag frem</button><button class="btn small ghost" data-act="nsStop">Stop guiden</button>${day<=3&&n.plan!=="6"?`<button class="btn small quiet" data-act="nsPlan" data-v="${n.plan==="5"?"7":"5"}">Skift til ${n.plan==="5"?"7 dage":"5 dage"}</button>`:""}</div>
