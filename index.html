@@ -495,7 +495,32 @@ const NS_CARD=[
   {t:"Dag 6 · Flydetest",tasks:["Morgen: Fjern 100 g surdej. Tilsæt 80 g vand, 30 g rugmel og 60 g hvedemel. Rør til der ikke er klumper.","Aften: Før du rører i den, så tag en teskefuld surdej og læg den i et glas vand. Flyder den?"],expect:"Flyder den, er den klar til brug. Ellers fodrer du den igen og gentager dag 6 i morgen.",test:true,testLabel:"Den flyder – den er klar"}
 ];
 const NS_CARD_EXTRA={t:"Gentag dag 6",tasks:["Morgen: Fjern 100 g surdej. Tilsæt 80 g vand, 30 g rugmel og 60 g hvedemel. Rør til der ikke er klumper.","Aften: Flydetest – en teskefuld surdej i et glas vand, før du rører i den."],expect:"Flyder den, er den klar. Ellers fodr igen og gentag i morgen. Tålmodighed bliver belønnet.",test:true,testLabel:"Den flyder – den er klar"};
-function nsList(){ const pl=state.ns&&state.ns.plan; return pl==="5"?NS_FAST:pl==="6"?NS_CARD:NS_DAYS.slice(0,7); }
+function cardDays(n){
+  const H=n&&n.hyd||null, done=(n&&n.done)||{};
+  const wat=(orig,r,h)=>H?Math.min(orig,Math.round((r+h)*H/100)):orig;
+  let M=0;
+  const feed=(orig,r,h)=>{ const w=wat(orig,r,h); M+=w+r+h; return w+" g vand, "+r+" g rugmel og "+h+" g hvedemel"; };
+  const keep=rem=>{ M=Math.max(10,M-rem); return M; };
+  const d=[];
+  const f1=feed(100,30,35);
+  d.push({t:"Dag 1 · Bland",tasks:["Bland "+f1+" i et rent glas.","Rør rundt, til der ikke er flere klumper.","Læg låget løst over, så der kan komme lidt luft ind. Stil den ved stuetemperatur, 20–21 °C."],expect:"Surdejen vejer nu ca. "+M+" g. Hold siderne rene med en dejskraber – det gælder hver dag."});
+  d.push({t:"Dag 2 · Rør rundt",tasks:["Rør rundt i den unge surdej, og lad den hvile til i morgen."],expect:"Der sker måske ikke så meget endnu. Det er helt normalt."});
+  const f3=feed(100,30,35);
+  d.push({t:"Dag 3 · Fodring",tasks:["Tilsæt "+f3+".","Rør rundt, til der ikke er flere klumper. Lad den hvile til i morgen."],expect:"Nu vejer den ca. "+M+" g og begynder som regel at få liv."});
+  const w4=wat(100,30,35), fed4=!!done["4-1"], undecided=!done["4-0"]&&!done["4-1"];
+  d.push({t:"Dag 4 · Bobler?",tasks:["Er der kommet bobler: Rør bare rundt og lad den hvile til i morgen.","Ingen bobler: Tilsæt igen "+w4+" g vand, 30 g rugmel og 35 g hvedemel, rør til der ikke er klumper, og lad den hvile."],expect:"Sæt kun flueben ved det punkt, du gør – så regner appen mængderne de næste dage rigtigt."});
+  if(fed4) M+=w4+65;
+  const k5=keep(50), f5=feed(100,35,30), k5a=keep(100), f5a=feed(80,30,60);
+  d.push({t:"Dag 5 · To fodringer",tasks:["Morgen: Behold "+k5+" g surdej (fjern ca. 50 g), før du rører rundt. Tilsæt "+f5+". Rør til der ikke er klumper. Hvil 8–12 timer.","Aften: Behold "+k5a+" g surdej (fjern ca. 100 g). Tilsæt "+f5a+". Rør til der ikke er klumper."],expect:"Den bør nu hæve og boble tydeligt mellem fodringerne."+(undecided?" Mængderne er regnet ud fra, at du kun rørte rundt på dag 4.":"")+" Har du lidt mindre surdej end beregnet, så behold det hele."});
+  const k6=keep(100), f6=feed(80,30,60);
+  d.push({t:"Dag 6 · Flydetest",tasks:["Morgen: Behold "+k6+" g surdej (fjern ca. 100 g). Tilsæt "+f6+". Rør til der ikke er klumper.","Aften: Før du rører i den, så tag en teskefuld surdej og læg den i et glas vand. Flyder den?"],expect:"Flyder den, er den klar til brug. Ellers fodrer du den igen og gentager dag 6 i morgen.",test:true,testLabel:"Den flyder – den er klar"});
+  const E=M, ft=wat(80,30,60)+90;
+  const extra=i=>{ const kept=Math.max(10,E+(i-1)*(ft-100)-100); return {t:"Gentag dag 6",tasks:["Morgen: Behold "+kept+" g surdej (fjern ca. 100 g). Tilsæt "+wat(80,30,60)+" g vand, 30 g rugmel og 60 g hvedemel. Rør til der ikke er klumper.","Aften: Flydetest – en teskefuld surdej i et glas vand, før du rører i den."],expect:"Flyder den, er den klar. Ellers fodr igen og gentag i morgen. Tålmodighed bliver belønnet.",test:true,testLabel:"Den flyder – den er klar"}; };
+  return {days:d,extra};
+}
+function nsList(){ const pl=state.ns&&state.ns.plan; return pl==="5"?NS_FAST:pl==="6"?cardDays(state.ns).days:NS_DAYS.slice(0,7); }
+function nsExtra(n,day,N){ return n.plan==="6"?cardDays(n).extra(day-N):NS_DAYS[7]; }
+function jarTxt(t){ const j=state.jarW; if(!j) return t; return t.replace(/Behold (\d+) g( surdej)?( \(fjern ca\. \d+ g\))?/,(m,g1)=>m+" – vægten skal vise "+(j+(+g1))+" g med glas"); }
 function nsLen(){ return nsList().length; }
 const SHAPES={
   bread:[["Rund hævekurv 20 cm",750],["Rund hævekurv 22 cm",900],["Rund hævekurv 25 cm",1100],["Aflang hævekurv 25 cm",800],["Aflang hævekurv 30 cm",1000],["Aflang hævekurv 35 cm",1300],["Brødform 1 liter",750],["Brødform 1,5 liter",1100],["Brødform 2 liter",1400],["Bâtard til 2–3 personer",500],["Baguette",350]],
@@ -833,9 +858,9 @@ function nsDay(){ if(!state.ns) return 0; const b=new Date(); b.setHours(0,0,0,0
 function nsCard(full){
   const n=state.ns; if(!n) return "";
   if(n.finished) return full?`<div class="ok"><b>Din nye surdej blev klar ${new Date(n.finished).toLocaleDateString("da-DK",{day:"numeric",month:"long"})}.</b> ${n.plan==="6"?"Stil den i køleskabet. 1–2 dage før du bager: tag 10 g og fodr med 30 g vand og 30 g hvedemel (1:3:3). 12–18 timer senere fodrer du med 70 g vand og 70 g hvedemel (1:1:1) – dagen efter har du 210 g frisk surdej. Ellers fodr med 80 g vand og 80 g hvedemel: en gang om ugen i køleskab, hver 3. dag ved stuetemperatur.":"Brug den 4–8 timer efter fodring."} <button class="btn small quiet" data-act="nsStop">Skjul</button></div>`:"";
-  const N=nsLen(), LST=nsList(), day=nsDay(), D=day<=N?LST[day-1]:(n.plan==="6"?NS_CARD_EXTRA:NS_DAYS[7]), W=waterFor(DDT.feed,false,null,0);
+  const N=nsLen(), LST=nsList(), day=nsDay(), D=day<=N?LST[day-1]:nsExtra(n,day,N), W=waterFor(DDT.feed,false,null,0);
   const tasks=D.tasks.map((t,i)=>{ const k=day+"-"+i, done=!!n.done[k];
-    return `<li style="display:flex;gap:10px;align-items:flex-start;padding:6px 0"><button class="chk" style="width:30px;height:30px;border-radius:9px;border:2px solid var(--line);background:${done?"var(--leaven)":"var(--surface)"};color:var(--surface);flex:none" data-act="nsTask" data-k="${k}" aria-pressed="${done}" aria-label="Udført">${done?"✓":""}</button><span style="${done?"opacity:.55":""}">${esc(t.replace("{W}",W))}</span></li>`; }).join("");
+    return `<li style="display:flex;gap:10px;align-items:flex-start;padding:6px 0"><button class="chk" style="width:30px;height:30px;border-radius:9px;border:2px solid var(--line);background:${done?"var(--leaven)":"var(--surface)"};color:var(--surface);flex:none" data-act="nsTask" data-k="${k}" aria-pressed="${done}" aria-label="Udført">${done?"✓":""}</button><span style="${done?"opacity:.55":""}">${esc(jarTxt(t.replace("{W}",W)))}</span></li>`; }).join("");
   const dots=Array.from({length:N},(_,i)=>`<i style="flex:1;height:6px;border-radius:3px;background:${i+1<day?"var(--leaven)":i+1===day?"var(--accent)":"var(--sunk)"}"></i>`).join("");
   return `<div class="now" style="margin-bottom:16px"><span class="kind-tag"><i style="background:var(--accent)"></i>Ny surdej · ${n.plan==="5"?"hurtig, ":n.plan==="6"?"opskriftskortet, ":""}${day<=N?"dag "+day+" af "+N:"dag "+day}</span>
     <div style="display:flex;gap:4px;margin:10px 0 2px">${dots}</div>
@@ -845,13 +870,15 @@ function nsCard(full){
     ${nsTomorrow(n,day,N,LST,W,D)}
     ${D.test?`<div class="row" style="margin-top:10px"><button class="btn" data-act="nsDone">${esc(D.testLabel||"Den fordobler sig – den er klar")}</button></div><p class="mini muted">Ikke endnu? Fortsæt i morgen – guiden giver dig næste dag.</p>`:""}
     ${full?`<div class="row" style="margin-top:12px"><button class="btn small quiet" data-act="nsShift" data-d="1">Ryk en dag tilbage</button><button class="btn small quiet" data-act="nsShift" data-d="-1">Spring en dag frem</button><button class="btn small ghost" data-act="nsStop">Stop guiden</button>${day<=3&&n.plan!=="6"?`<button class="btn small quiet" data-act="nsPlan" data-v="${n.plan==="5"?"7":"5"}">Skift til ${n.plan==="5"?"7 dage":"5 dage"}</button>`:""}</div>
-      <details style="margin-top:12px"><summary>Hele forløbet</summary><div class="dbody">${LST.map((x,i)=>`<p style="${i+1<day?"opacity:.55":""}"><b>${esc(x.t)}${i+1===day?" · i dag":""}</b><br>${esc(x.tasks.join(" ").replace(/\{W\}/g,W))}</p>`).join("")}</div></details>`:`<a class="btn small ghost" href="#surdej" style="margin-top:10px">Hele forløbet</a>`}
+      ${n.plan==="6"?`<div class="field" style="margin-top:14px"><label>Hydrering</label><div class="seg">${[[0,"Som kortet","≈150 %"],[125,"125 %","Lidt fastere"],[100,"100 %","Klassisk"],[80,"80 %","Fast"]].map(([v,l,sub])=>`<button data-act="nsHyd" data-v="${v}" aria-pressed="${(n.hyd||0)===v}">${l}<small>${sub}</small></button>`).join("")}</div><small>Mindre vand giver en tykkere surdej, hvor boblerne og hævningen er meget nemmere at se. Melmængderne er de samme – kun vandet ændres.</small></div>`:""}
+      <div class="field" style="margin-top:14px"><label for="jarW">Mit glas vejer tomt</label><div class="two" style="align-items:center"><input id="jarW" class="plain" inputmode="numeric" placeholder="fx 320" value="${state.jarW||""}"><small style="margin:0">Så viser appen, hvad vægten skal vise med glas, når du har kasseret.</small></div></div>
+      <details style="margin-top:12px"><summary>Hele forløbet</summary><div class="dbody">${LST.map((x,i)=>`<p style="${i+1<day?"opacity:.55":""}"><b>${esc(x.t)}${i+1===day?" · i dag":""}</b><br>${esc(x.tasks.map(jarTxt).join(" ").replace(/\{W\}/g,W))}</p>`).join("")}</div></details>`:`<a class="btn small ghost" href="#surdej" style="margin-top:10px">Hele forløbet</a>`}
   </div>`;
 }
 function nsTomorrow(n,day,N,LST,W,D){
-  const nx=day+1<=N?LST[day]:(n.plan==="6"?NS_CARD_EXTRA:NS_DAYS[7]);
+  const nx=day+1<=N?LST[day]:nsExtra(n,day+1,N);
   const morning=nx.tasks.some(t=>/^Morgen/.test(t));
-  const first=nx.tasks[0].replace(/\{W\}/g,W);
+  const first=jarTxt(nx.tasks[0].replace(/\{W\}/g,W));
   return `<div class="${morning?"warn":"note"}" style="margin-top:12px"><b>${morning?"⏰ I morgen tidlig":"I morgen"} · ${esc(nx.t)}</b>${D.test?"<br><span class=\"mini\">Hvis den ikke er klar i dag:</span>":""}<br>${esc(first)}${nx.tasks.length>1?`<br><span class="mini muted">+ ${nx.tasks.length-1} opgave${nx.tasks.length>2?"r":""} mere i løbet af dagen</span>`:""}${morning?`<br><span class="mini">Starter om morgenen – sæt evt. en alarm, og sørg for at have mel nok.</span>`:""}</div>`;
 }
 function renderStarter(){
@@ -1445,6 +1472,7 @@ const A={
   nsShift(el){ state.ns.start+=(+el.dataset.d)*86400000; save(); renderAll(); },
   nsDone(){ state.ns.finished=Date.now(); save(); renderAll(); toast("Tillykke – din surdej er klar!"); },
   nsPlan(el){ state.ns.plan=el.dataset.v; save(); renderAll(); toast("Skiftet til "+el.dataset.v+" dage"); },
+  nsHyd(el){ state.ns.hyd=+el.dataset.v||null; save(); renderAll(); toast(state.ns.hyd?"Hydrering "+state.ns.hyd+" %":"Som kortet"); },
   nsStop(){ state.ns=null; save(); renderAll(); },
   waterSheet,
   invAdd(el){ const it=invItems()[+el.dataset.i]; it.kg=Math.max(0,Math.round(((it.kg||0)+(+el.dataset.v))*100)/100); save(); renderMel(); updBadge(); },
@@ -1537,6 +1565,7 @@ document.addEventListener("input",e=>{
 document.addEventListener("change",e=>{
   const el=e.target;
   if(el.dataset.shape&&el.value!==""){ const kd=el.dataset.shape, x=SHAPES[kd][+el.value]; state[kd].weight=x[1]; save(); const i=document.querySelector(`[data-bind="${kd}.weight"]`); if(i) i.value=x[1]; calcOut(); toast(x[0]+": "+x[1]+" g"); return; }
+  if(el.id==="jarW"){ const v=parseInt(el.value,10); state.jarW=v>0?v:null; save(); renderAll(); return; }
   if(el.id==="pfHomeTime"&&el.value){ state.homeTime=el.value; save(); renderPlan(); return; }
   if(el.dataset.pf){
     const k=el.dataset.pf;
