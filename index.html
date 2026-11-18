@@ -1622,7 +1622,17 @@ function route(){
 function renderTab(){
   ({hjem:renderHome,surdej:renderStarter,brod:renderBrod,pizza:renderPizza,plan:renderPlan,mel:renderMel})[ui.tab]();
 }
-function renderAll(){ renderTab(); tick(); updBadge(); }
+function keepView(fn){
+  const v=document.getElementById("v-"+ui.tab), y=window.scrollY;
+  const open=new Set(v?Array.from(v.querySelectorAll("details[open] > summary")).map(s=>s.textContent.trim()):[]);
+  fn();
+  if(v&&open.size) v.querySelectorAll("details > summary").forEach(s=>{ if(open.has(s.textContent.trim())) s.parentElement.open=true; });
+  if(Math.abs(window.scrollY-y)>1) window.scrollTo(0,y);
+}
+let lastScroll=0;
+window.addEventListener("scroll",()=>{ lastScroll=Date.now(); },{passive:true});
+window.addEventListener("touchmove",()=>{ lastScroll=Date.now(); },{passive:true});
+function renderAll(){ keepView(renderTab); tick(); updBadge(); }
 function syncPizzaW(k){
   if(k!=="pizza.diam"&&k!=="pizza.thick") return;
   const p=state.pizza; p.diam=Math.min(45,Math.max(18,p.diam)); p.weight=pizzaW(p.diam,(THICK[p.thick]||THICK.napoletana)[1]);
@@ -1640,7 +1650,7 @@ setInterval(()=>{
   const active=document.activeElement, typing=active&&(active.tagName==="INPUT"||active.tagName==="SELECT"||active.tagName==="TEXTAREA");
   if(typing||$("#modal").classList.contains("on")) return;
 },1000);
-setInterval(()=>{ const ae=document.activeElement; if(ae&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)) return; if(ui.tab==="hjem") renderHome(); else if(ui.tab==="plan"&&state.plan) renderPlan(); else if(ui.tab==="surdej") renderStarter(); },30000);
+setInterval(()=>{ const ae=document.activeElement; if(ae&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)) return; if(Date.now()-lastScroll<20000) return; if($("#modal").classList.contains("on")) return; keepView(()=>{ if(ui.tab==="hjem") renderHome(); else if(ui.tab==="plan"&&state.plan) renderPlan(); else if(ui.tab==="surdej") renderStarter(); }); },30000);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ renderAll(); if(wake===null&&$("#wakeState").textContent==="Til") toggleWake(); } });
 })();
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
