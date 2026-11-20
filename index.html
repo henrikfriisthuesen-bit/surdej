@@ -510,15 +510,19 @@ const NH={
 };
 [[2,["early","warm","band"]],[3,["falseStart","warm","water"]],[4,["wait","warm","rye"]],[5,["warm","rye","smell","band"]],[6,["notYet","warm","rye"]],[7,["warm","rye","water","band"]]].forEach(([i,h])=>NS_DAYS[i].help=h);
 [[1,["early","warm"]],[2,["falseStart","warm","rye"]],[3,["warm","rye","smell","band"]],[4,["notYet","warm","rye"]]].forEach(([i,h])=>NS_FAST[i].help=h);
-function cardDays(n){
-  const H=n&&n.hyd||null, done=(n&&n.done)||{}, act=(n&&n.actual)||{};
+function cardDays(n,isRef){
+  const H=n&&n.hyd||null, done=(n&&n.done)||{}, act=isRef?{}:((n&&n.actual)||{});
   const wat=(orig,r,h)=>H?Math.min(orig,Math.round((r+h)*H/100)):orig;
+  const refs={}; const R=isRef?null:cardDays(n,true).refs;
   let M=0;
-  const feed=(orig,r,h,f)=>{ f=f||1; const w=Math.round(wat(orig,r,h)*f), rr=Math.round(r*f), hh=Math.round(h*f); M+=w+rr+hh; return w+" g vand, "+rr+" g rugmel og "+hh+" g hvedemel"+(f<0.999?" (tilpasset din surdej)":""); };
-  // "add to everything": scale if user weighed less than planned
-  const addScale=key=>{ const a=act[key]; if(!a||a>=M) return 1; const f=a/M; M=a; return f; };
-  // "keep K": keep min(actual,K); additions scale if actual < K
-  const keep=(rem,key)=>{ const K=Math.max(10,M-rem), a=act[key]; if(a&&a<K){ M=a; return {k:a,f:a/K}; } M=K; return {k:K,f:1}; };
+  const feed=(orig,r,h,f)=>{ f=f||1; const w=Math.round(wat(orig,r,h)*f), rr=Math.round(r*f), hh=Math.round(h*f); M+=w+rr+hh; return w+" g vand, "+rr+" g rugmel og "+hh+" g hvedemel"+(Math.abs(f-1)>0.01?" (tilpasset din surdej)":""); };
+  // Steps that add to everything: scale additions to the real weight
+  const addScale=key=>{ const P0=R?R[key].P:M; refs[key]={P:M}; const a=act[key]; if(a) M=a; return M/P0; };
+  // Steps that keep part: keep the same share as the card, and scale additions
+  const keep=(rem,key)=>{ const before=M; refs[key]={P:M,K:Math.max(10,M-rem)};
+    const ref=R?R[key]:refs[key], a=act[key], tot=a||M;
+    const k=Math.max(5,Math.round(tot*ref.K/ref.P)); M=k;
+    return {k,f:k/ref.K,rem:Math.max(0,tot-k),plan:before}; };
   const d=[];
   const f1=feed(100,30,35);
   d.push({t:"Dag 1 · Bland",tasks:["Bland "+f1+" i et rent glas.","Rør rundt, til der ikke er flere klumper.","Læg låget løst over, så der kan komme lidt luft ind. Stil den ved stuetemperatur, 20–21 °C."],expect:"Surdejen vejer nu ca. "+M+" g. Hold siderne rene med en dejskraber – det gælder hver dag."});
@@ -526,30 +530,31 @@ function cardDays(n){
   const p3=M, s3=addScale("d3"), f3=feed(100,30,35,s3);
   d.push({t:"Dag 3 · Fodring",tasks:["Tilsæt "+f3+".","Rør rundt, til der ikke er flere klumper. Lad den hvile til i morgen."],weigh:[{key:"d3",plan:p3},null],expect:"Nu vejer den ca. "+M+" g og begynder som regel at få liv."});
   const fed4=!!done["4-1"], undecided=!done["4-0"]&&!done["4-1"];
-  const p4=M, M4=M; const s4=fed4?addScale("d4"):(act.d4&&act.d4<M?act.d4/M:1);
-  const t4="Ingen bobler: Tilsæt igen "+Math.round(wat(100,30,35)*s4)+" g vand, "+Math.round(30*s4)+" g rugmel og "+Math.round(35*s4)+" g hvedemel"+(s4<0.999?" (tilpasset din surdej)":"")+", rør til der ikke er klumper, og lad den hvile.";
-  if(fed4) feed(100,30,35,s4); else M=M4;
+  const p4=M, s4=addScale("d4");
+  const t4="Ingen bobler: Tilsæt igen "+Math.round(wat(100,30,35)*s4)+" g vand, "+Math.round(30*s4)+" g rugmel og "+Math.round(35*s4)+" g hvedemel"+(Math.abs(s4-1)>0.01?" (tilpasset din surdej)":"")+", rør til der ikke er klumper, og lad den hvile.";
+  if(fed4) feed(100,30,35,s4);
   d.push({t:"Dag 4 · Bobler?",tasks:["Er der kommet bobler: Rør bare rundt og lad den hvile til i morgen.",t4],weigh:[null,{key:"d4",plan:p4}],expect:"Sæt kun flueben ved det punkt, du gør – så regner appen mængderne de næste dage rigtigt."});
-  const p5=Math.max(10,M-50), k5=keep(50,"d5m"), f5=feed(100,35,30,k5.f);
-  const p5a=Math.max(10,M-100), k5a=keep(100,"d5a"), f5a=feed(80,30,60,k5a.f);
-  d.push({t:"Dag 5 · To fodringer",tasks:["Morgen: Behold "+k5.k+" g surdej (fjern ca. 50 g), før du rører rundt. Tilsæt "+f5+". Rør til der ikke er klumper. Hvil 8–12 timer.","Aften: Behold "+k5a.k+" g surdej (fjern ca. 100 g). Tilsæt "+f5a+". Rør til der ikke er klumper."],weigh:[{key:"d5m",plan:p5},{key:"d5a",plan:p5a}],expect:"Den bør nu hæve og boble tydeligt mellem fodringerne."+(undecided?" Mængderne er regnet ud fra, at du kun rørte rundt på dag 4.":"")});
-  const p6=Math.max(10,M-100), k6=keep(100,"d6m"), f6=feed(80,30,60,k6.f);
-  d.push({t:"Dag 6 · Flydetest",tasks:["Morgen: Behold "+k6.k+" g surdej (fjern ca. 100 g). Tilsæt "+f6+". Rør til der ikke er klumper.","Aften: Før du rører i den, så tag en teskefuld surdej og læg den i et glas vand. Flyder den?"],weigh:[{key:"d6m",plan:p6},null],expect:"Flyder den, er den klar til brug. Ellers fodrer du den igen og gentager dag 6 i morgen.",test:true,testLabel:"Den flyder – den er klar"});
+  const k5=keep(50,"d5m"), f5=feed(100,35,30,k5.f);
+  const k5a=keep(100,"d5a"), f5a=feed(80,30,60,k5a.f);
+  d.push({t:"Dag 5 · To fodringer",tasks:["Morgen: Behold "+k5.k+" g surdej (fjern ca. "+k5.rem+" g), før du rører rundt. Tilsæt "+f5+". Rør til der ikke er klumper. Hvil 8–12 timer.","Aften: Behold "+k5a.k+" g surdej (fjern ca. "+k5a.rem+" g). Tilsæt "+f5a+". Rør til der ikke er klumper."],weigh:[{key:"d5m",plan:k5.plan},{key:"d5a",plan:k5a.plan}],expect:"Den bør nu hæve og boble tydeligt mellem fodringerne."+(undecided?" Mængderne er regnet ud fra, at du kun rørte rundt på dag 4.":"")});
+  const k6=keep(100,"d6m"), f6=feed(80,30,60,k6.f);
+  d.push({t:"Dag 6 · Flydetest",tasks:["Morgen: Behold "+k6.k+" g surdej (fjern ca. "+k6.rem+" g). Tilsæt "+f6+". Rør til der ikke er klumper.","Aften: Før du rører i den, så tag en teskefuld surdej og læg den i et glas vand. Flyder den?"],weigh:[{key:"d6m",plan:k6.plan},null],expect:"Flyder den, er den klar til brug. Ellers fodrer du den igen og gentager dag 6 i morgen.",test:true,testLabel:"Den flyder – den er klar"});
+  const E=M;
+  const extra=i=>{ M=E; let r,f;
+    for(let x=1;x<=i;x++){ r=keep(100,"x"+x); f=feed(80,30,60,r.f); }
+    return {t:"Gentag dag 6",tasks:["Morgen: Behold "+r.k+" g surdej (fjern ca. "+r.rem+" g). Tilsæt "+f+". Rør til der ikke er klumper.","Aften: Flydetest – en teskefuld surdej i et glas vand, før du rører i den."],weigh:[{key:"x"+i,plan:r.plan},null],expect:"Flyder den, er den klar. Ellers fodr igen og gentag i morgen. Tålmodighed bliver belønnet.",test:true,testLabel:"Den flyder – den er klar",help:["float","warm","rye","water"]}; };
+  if(isRef){ for(let x=1;x<=30;x++){ keep(100,"x"+x); feed(80,30,60,1); } return {refs}; }
   d[2].help=["early","warm","band",...(H&&H<=100?[]:["hyd"])];
   d[3].help=["warm","water","rye",...(H&&H<=100?[]:["hyd"])];
   d[4].help=["wait","warm","rye",...(H&&H<=100?[]:["hyd"]),"smell"];
   d[5].help=["float","warm","rye","notYet"];
-  const E=M;
-  const extra=i=>{ M=E; let k,f,pl;
-    for(let x=1;x<=i;x++){ pl=Math.max(10,M-100); const r=keep(100,"x"+x); k=r.k; f=feed(80,30,60,r.f); }
-    return {t:"Gentag dag 6",tasks:["Morgen: Behold "+k+" g surdej (fjern ca. 100 g). Tilsæt "+f+". Rør til der ikke er klumper.","Aften: Flydetest – en teskefuld surdej i et glas vand, før du rører i den."],weigh:[{key:"x"+i,plan:pl},null],expect:"Flyder den, er den klar. Ellers fodr igen og gentag i morgen. Tålmodighed bliver belønnet.",test:true,testLabel:"Den flyder – den er klar",help:["float","warm","rye","water"]}; };
   return {days:d,extra};
 }
 function nsList(){ const pl=state.ns&&state.ns.plan; return pl==="5"?NS_FAST:pl==="6"?cardDays(state.ns).days:NS_DAYS.slice(0,7); }
 function nsExtra(n,day,N){ return n.plan==="6"?cardDays(n).extra(day-N):NS_DAYS[7]; }
 function weighHtml(n,w){
   const a=(n.actual||{})[w.key];
-  return `<span style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><small style="margin:0">${a?"Din surdej vejede":"Har du mindre end "+w.plan+" g? Den vejer:"}</small><input data-nsw="${w.key}" class="plain" inputmode="numeric" placeholder="${w.plan}" value="${a||""}" style="width:96px;min-height:40px;padding:6px 10px;font-size:16px" aria-label="Surdejens vægt i gram"><small style="margin:0">g</small>${a?`<button class="btn small ghost" data-act="nswClear" data-k="${w.key}">Nulstil</button>`:""}</span>`;
+  return `<span style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><small style="margin:0">${a?"Din surdej vejede":"Vejer den ikke ca. "+w.plan+" g? Skriv vægten:"}</small><input data-nsw="${w.key}" class="plain" inputmode="numeric" placeholder="${w.plan}" value="${a||""}" style="width:96px;min-height:40px;padding:6px 10px;font-size:16px" aria-label="Surdejens vægt i gram"><small style="margin:0">g</small>${a?`<button class="btn small ghost" data-act="nswClear" data-k="${w.key}">Nulstil</button>`:""}</span>`;
 }
 function jarTxt(t){ const j=state.jarW; if(!j) return t; return t.replace(/Behold (\d+) g( surdej)?( \(fjern ca\. \d+ g\))?/,(m,g1)=>m+" – vægten skal vise "+(j+(+g1))+" g med glas"); }
 function nsLen(){ return nsList().length; }
