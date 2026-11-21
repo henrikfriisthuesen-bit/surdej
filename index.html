@@ -273,6 +273,7 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
     </div>
     <div id="feedOut" style="margin-top:14px"></div>
   </section>
+  <section id="refreshSec"></section>
   <section>
     <h2>Den optimale surdej</h2>
     <div class="note" style="margin-top:10px">
@@ -584,6 +585,7 @@ function defaults(){
     plan:null,
     ns:null,
     mixer:"hand",
+    refresh:{need:210},
     homeTime:"16:30",
     log:[],
     timer:null
@@ -655,12 +657,83 @@ const TEMPLATES = {
   rye:{ name:"Rugbrød", variants:{std:"Klassisk over to dage"}, ready:()=>at(1,17,0), end:"Ud af formen og på rist. Skær helst først i morgen." },
   pizza:{ name:"Pizza", variants:{cold:"Kugler i køleskab (24–72 t)",poolish:"Poolish aftenen før",biga:"Biga dagen før",same:"Samme dag"}, ready:()=>at(1,18,30), end:"Første pizza er ude. Velbekomme – næste ind." }
 };
+/* ---------- opfriskning før bagning (kortets metode) ---------- */
+function levNeed(recipe){
+  if(recipe==="rye") return 150;
+  if(recipe==="pizza"){ const p=state.pizza; if(p.yt!=="surdej") return 0; return pizzaCalc(p).F*p.yeast/100; }
+  const b=state[recipe==="buns"?"buns":"bread"], mp=b.maltType==="none"?0:b.malt;
+  const Fm=b.count*b.weight/(1+(b.hyd+b.lev+b.salt+mp)/100); return Fm*b.lev/100;
+}
+function refreshCalc(need,T){
+  const tot=Math.max(30,Math.round(need*1.1)), f=tot/210;
+  const st=Math.max(3,Math.round(10*f)), a1=Math.round(30*f), a2=Math.round(70*f);
+  const d1=Math.round(15*60*F(T)/F(20.5)), d2=peakMin(1,T);
+  return {st,a1,a2,tot:st+2*a1+2*a2,d1,d2};
+}
+function refreshSteps(o){
+  const rc=refreshCalc(levNeed(o.recipe)||210,o.temp), mel=o.recipe==="rye"?"rugmel":"hvedemel";
+  return [{lev:true,t:"Opfrisk 1: surdej fra køleskabet",d:rc.d1,k:"act",x:"Tag "+rc.st+" g surdej fra køleskabet. Fodr med "+rc.a1+" g vand og "+rc.a1+" g "+mel+" (1:3:3). Dæk til."},
+          {lev:true,t:"Opfrisk 2: fodr igen",d:rc.d2,k:"act",x:"Tilsæt "+rc.a2+" g vand og "+rc.a2+" g "+mel+" (1:1:1). Klar når den er fordoblet og hvælvet – du har ca. "+rc.tot+" g."}];
+}
+function refreshHtml(){
+  const T=state.feed.temp, need=state.refresh.need, rc=refreshCalc(need,T);
+  if(!ui.refUse) ui.refUse=at(1,8,0);
+  const use=ui.refUse, now=Date.now(); let s2=use-rc.d2*MIN, overnight=false;
+  if(isNight(s2)){ const x=new Date(s2); if(x.getHours()<6) x.setDate(x.getDate()-1); x.setHours(22,0,0,0); s2=x.getTime(); overnight=true; }
+  const sc=F(T)/F(20.5); let s1=s2-rc.d1*MIN;
+  if(isNight(s1)){ for(let h=12;h<=18;h+=0.5){ const c=s2-Math.round(h*60*sc)*MIN; if(!isNight(c)){ s1=c; break; } } }
+  const late=s1<now-5*MIN, readyIfNow=now+(rc.d1+rc.d2)*MIN;
+  const chip=(r,l)=>{ const v=Math.round(levNeed(r)); return v>0?`<button class="btn small quiet" data-act="refNeed" data-v="${v}">${l} · ${v} g</button>`:""; };
+  return `<h2>Opfrisk til bagning</h2><p class="muted">Kortets metode: lidt surdej fra køleskabet, fodret i to trin, så den er stærk og frisk, når du bager.</p>
+    <div class="fields" style="margin-top:12px">
+      ${stepper("refresh.need","Surdej jeg skal bruge","g",10)}
+      <div class="chips"><button class="btn small quiet" data-act="refNeed" data-v="210">Kortet · 210 g</button>${chip("bread","Brød")}${chip("buns","Boller")}${chip("pizza","Pizza")}</div>
+      <div class="field"><label for="refUse">Skal være klar</label><input type="datetime-local" id="refUse" value="${toLocalInput(use)}"></div>
+    </div>
+    <div class="sheet num" style="margin-top:14px">
+      <div class="line"><span><b>${dayLabel(s1)} kl. ${hm(s1)}</b><br><small>${rc.st} g surdej + ${rc.a1} g vand + ${rc.a1} g hvedemel</small></span><b>1:3:3</b></div>
+      <div class="line"><span><b>${dayLabel(s2)} kl. ${hm(s2)}</b><br><small>+ ${rc.a2} g vand + ${rc.a2} g hvedemel</small></span><b>1:1:1</b></div>
+      <div class="line total"><span>Klar ${dayLabel(use)} kl. ${hm(use)}</span><b>${rc.tot} g</b></div></div>
+    ${overnight?`<p class="note">Andet trin ville falde om natten, så det er lagt kl. 22 aftenen før. Surdejen står natten over, ligesom kortet beskriver – brug den gerne kort efter, du står op.</p>`:""}
+    ${late?`<p class="warn">Første trin skulle have været ${dayLabel(s1)} kl. ${hm(s1)}. Starter du nu, er den klar ${dayLabel(readyIfNow)} kl. ${hm(readyIfNow)}.</p>`:`<p class="ok">Tiderne passer til ${T} °C i køkkenet. Kortet siger 12–18 timer for første trin – ved køligere køkken bliver det længere.</p>`}
+    <p class="mini muted">Det er 10 % ekstra med, så du har lidt tilbage til næste gang. Vil du planlægge hele bagningen, så vælg "Opfrisk 2 trin" under Plan.</p>`;
+}
+function refreshOut(){ const el=$("#refreshSec"); if(el) keepFocus(()=>{ el.innerHTML=refreshHtml(); }); }
+function keepFocus(fn){ const ae=document.activeElement, id=ae&&ae.dataset&&ae.dataset.bind, pos=ae&&ae.selectionStart; fn(); if(id){ const n=document.querySelector(`#refreshSec [data-bind="${id}"]`); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos);}catch(e){} } } }
+
+/* ---------- aktivitetslog for ny surdej ---------- */
+const NSL={b:[["0","Ingen"],["1","Lidt"],["2","Mange"]],r:[["0","0 %"],["1","25 %"],["2","50 %"],["3","Fordoblet"]],s:[["mel","Af mel"],["syrlig","Syrligt"],["skarp","Skarpt"]]};
+function nsAdvice(n,day){
+  const L=(n.log||{})[day]; if(!L) return "";
+  const prev=(n.log||{})[day-1]; const b=+L.b, r=+L.r;
+  let cls="note", m="";
+  if(r>=3&&day>=4){ cls="ok"; m="Den fordobler sig – den er klar eller meget tæt på. Lav klar-testen, når du når til den."; }
+  else if(L.b!=null&&b===0&&L.s==="mel"&&day>=3){ cls="warn"; m="Gæringen er ikke rigtig i gang endnu. Stil den lunere (24–27 °C), brug kun fuldkornsrug ved næste fodring, og spring evt. en fodring over, så den får ro."; }
+  else if(prev&&+prev.b===2&&b===0&&day<=5){ m="Mange bobler i går og ingen i dag er den falske start. Gæren er på vej – fortsæt planen og hold den lun."; }
+  else if(b===2&&r===0){ cls="warn"; m="Masser af bobler, men den hæver ikke? Den er sikkert for våd, så luften slipper ud. Vælg 100 % hydrering."; }
+  else if(L.s==="skarp"&&b>=1){ m="Skarp duft (alkohol eller neglelak) betyder, at den er sulten. Fodr som planlagt – den er i live."; }
+  else if(b>=1&&r>=1&&L.s==="syrlig"){ cls="ok"; m="Bobler, hævning og syrlig duft – det går den rigtige vej."; }
+  else if(b>=1){ cls="ok"; m="Der er liv. Hold den lun og fortsæt planen."; }
+  else if(L.b!=null&&b===0&&day<3){ m="Ingen bobler endnu er helt normalt de første dage."; }
+  return m?`<p class="${cls}" style="margin-top:8px">${esc(m)}</p>`:"";
+}
+function nsLogHtml(n,day,full){
+  const L=(n.log||{})[day]||{};
+  const row=(f,label)=>`<div style="margin-top:8px"><small style="display:block;margin:0 0 4px">${label}</small><div class="seg">${NSL[f].map(([v,l])=>`<button data-act="nsLog" data-f="${f}" data-v="${v}" aria-pressed="${L[f]!=null&&String(L[f])===v}">${l}</button>`).join("")}</div></div>`;
+  let chart="";
+  if(full){
+    const days=Math.max(day,Object.keys(n.log||{}).length?Math.max(...Object.keys(n.log).map(Number)):0);
+    if(days>1) chart=`<div style="display:flex;align-items:flex-end;gap:4px;height:70px;margin-top:12px">${Array.from({length:days},(_,i)=>{ const e=(n.log||{})[i+1]; const h=e&&e.r!=null?8+(+e.r)*18:4; const c=!e||e.b==null?"var(--sunk)":+e.b===2?"var(--leaven)":+e.b===1?"var(--accent)":"var(--line)"; return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><i style="width:100%;height:${h}px;border-radius:4px;background:${c}"></i><small style="font-size:11px;margin:0">${i+1}</small></div>`; }).join("")}</div><small>Højde = hævning, farve = bobler (grøn mange, gul lidt, grå ingen).</small>`;
+  }
+  return `<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:10px"><b>Hvordan ser den ud i dag?</b>${row("b","Bobler")}${row("r","Hævet siden sidste fodring")}${row("s","Duft")}${nsAdvice(n,day)}${chart}</div>`;
+}
+
 function levainStep(o){
   return {lev:true,t:"Fodr surdejen", d:peakMin(o.ratio,o.temp), k:"wait", x:"Fodr 1:"+o.ratio+":"+o.ratio+" og stil den lunt. Den er klar når den er fordoblet og hvælvet."};
 }
 function stepsFor(o){
   const sour=o.recipe!=="pizza"||o.leaven==="surdej";
-  const f=F(o.temp)*(sour&&o.levain==="cold"?1.4:1)*(o.recipe==="pizza"&&sour?1.5:1), L=sour&&o.levain==="feed"?[levainStep(o)]:[];
+  const f=F(o.temp)*(sour&&o.levain==="cold"?1.4:1)*(o.recipe==="pizza"&&sour?1.5:1), L=!sour?[]:o.levain==="feed"?[levainStep(o)]:o.levain==="refresh"?refreshSteps(o):[];
   const r=n=>Math.round(n);
   if(o.recipe==="pizza"){
     const oven=[{t:"Tænd pizzaovnen",d:40,k:"oven",x:"Stenen skal op på temperatur. Mål med et IR-termometer."},
@@ -742,7 +815,12 @@ function stepsFor(o){
 function buildPlan(o){
   const steps=stepsFor(o), fi=steps.findIndex(s=>s.flex), out=[], warn=[];
   let t=o.start;
-  if(steps[0]&&steps[0].lev){
+  const levDur=steps.filter(x=>x.lev).reduce((a,x)=>a+x.d,0);
+  if(steps[0]&&steps[0].lev&&o.levain==="refresh"){
+    t=o.start-levDur*MIN; const now=Date.now();
+    if(t<now-5*MIN){ t=round5(now); warn.push({w:true,m:"Opfriskningen skulle være startet "+dayLabel(o.start-levDur*MIN)+" kl. "+hm(o.start-levDur*MIN)+". Starter du nu, kan du først gå i gang med dejen "+dayLabel(t+levDur*MIN)+" kl. "+hm(t+levDur*MIN)+"."}); }
+    else warn.push({w:false,m:"Tag surdejen ud af køleskabet "+dayLabel(t)+" kl. "+hm(t)+" og opfrisk i to trin, så er den klar, når du går i gang kl. "+hm(o.start)+"."});
+  } else if(steps[0]&&steps[0].lev){
     t=o.start-steps[0].d*MIN;
     const now=Date.now();
     if(t<now-5*MIN){
@@ -905,6 +983,7 @@ function nsCard(full){
     <div class="what">${esc(D.t)}</div>
     <ul style="list-style:none;padding:0;margin:8px 0">${tasks}</ul>
     <p class="muted mini">${esc(D.expect)}</p>
+    ${nsLogHtml(n,day,full)}
     ${D.help?`<details class="nohelp" style="margin:10px 0 0;background:var(--sunk);border:0"><summary style="font-size:16px;padding:12px 14px">Ingen bobler? Det kan du gøre</summary><div class="dbody"><ul style="padding-left:20px;margin:0">${D.help.map(k=>`<li>${esc(NH[k])}</li>`).join("")}</ul></div></details>`:""}
     ${nsTomorrow(n,day,N,LST,W,D)}
     ${D.test?`<div class="row" style="margin-top:10px"><button class="btn" data-act="nsDone">${esc(D.testLabel||"Den fordobler sig – den er klar")}</button></div><p class="mini muted">Ikke endnu? Fortsæt i morgen – guiden giver dig næste dag.</p>`:""}
@@ -921,6 +1000,7 @@ function nsTomorrow(n,day,N,LST,W,D){
   return `<div class="${morning?"warn":"note"}" style="margin-top:12px"><b>${morning?"⏰ I morgen tidlig":"I morgen"} · ${esc(nx.t)}</b>${D.test?"<br><span class=\"mini\">Hvis den ikke er klar i dag:</span>":""}<br>${esc(first)}${nx.tasks.length>1?`<br><span class="mini muted">+ ${nx.tasks.length-1} opgave${nx.tasks.length>2?"r":""} mere i løbet af dagen</span>`:""}${morning?`<br><span class="mini">Starter om morgenen – sæt evt. en alarm, og sørg for at have mel nok.</span>`:""}</div>`;
 }
 function renderStarter(){
+  $("#refreshSec").innerHTML=refreshHtml();
   $("#nsSec").innerHTML = state.ns ? nsCard(true) : `<div class="note" style="margin-bottom:16px"><strong>Ny surdej fra bunden?</strong><p>Appen guider dig dag for dag – med mængder, vandtemperatur og hvad du kan forvente. Dagens opgaver vises på forsiden.</p>
   <p class="mini"><b>7 dage:</b> Den sikre vej ved almindelig stuetemperatur.<br><b>5 dage:</b> Kræver 26–28 °C, fuldkornsrug og to fodringer om dagen fra dag 3. Den lykkes ofte, men ikke altid – bliver den ikke klar, giver guiden dig bare ekstra dage.</p>
   <div class="row" style="margin-top:10px"><button class="btn" data-act="nsStart" data-plan="7" data-back="0">Start 7 dage</button><button class="btn" data-act="nsStart" data-plan="5" data-back="0">Start 5 dage</button></div>
@@ -1385,7 +1465,8 @@ function renderPlan(){
     ${hasFlex?`<div class="field"><label for="pfReady">Skal være klar</label><input type="datetime-local" id="pfReady" data-pf="ready" value="${toLocalInput(f.ready)}"></div>`:""}
     <div class="field"><label>Køkkentemperatur</label><div class="stepper"><button data-act="pfTemp" data-d="-1" aria-label="Koldere">−</button><input inputmode="numeric" data-pf="temp" value="${f.temp}"><span class="unit">°C</span><button data-act="pfTemp" data-d="1" aria-label="Varmere">+</button></div><small>Varmere = hurtigere. Planen justerer hævetiderne automatisk.</small></div>
     ${f.recipe==="pizza"?`<div class="field"><label>Hævemiddel</label><div class="seg"><button data-act="pf" data-k="leaven" data-v="gaer" aria-pressed="${f.leaven!=="surdej"}">Gær</button><button data-act="pf" data-k="leaven" data-v="surdej" aria-pressed="${f.leaven==="surdej"}">Surdej</button></div></div>`:""}
-    ${f.recipe!=="pizza"||f.leaven==="surdej"?`<div class="field"><label>Surdejen</label><div class="seg"><button data-act="pf" data-k="levain" data-v="feed" aria-pressed="${f.levain==="feed"}">Fodres først</button><button data-act="pf" data-k="levain" data-v="ready" aria-pressed="${f.levain==="ready"}">Aktiv nu</button><button data-act="pf" data-k="levain" data-v="cold" aria-pressed="${f.levain==="cold"}">Fra køleskab</button></div>
+    ${f.recipe!=="pizza"||f.leaven==="surdej"?`<div class="field"><label>Surdejen</label><div class="seg"><button data-act="pf" data-k="levain" data-v="feed" aria-pressed="${f.levain==="feed"}">Fodres først</button><button data-act="pf" data-k="levain" data-v="ready" aria-pressed="${f.levain==="ready"}">Aktiv nu</button><button data-act="pf" data-k="levain" data-v="cold" aria-pressed="${f.levain==="cold"}">Fra køleskab</button><button data-act="pf" data-k="levain" data-v="refresh" aria-pressed="${f.levain==="refresh"}">Opfrisk 2 trin</button></div>
+    ${f.levain==="refresh"?(()=>{ const rc=refreshCalc(levNeed(f.recipe)||210,f.temp); return `<small>Kortets metode til ca. ${rc.tot} g surdej: ${rc.st} g fra køleskabet fodres 1:3:3, og ${dur(rc.d1)} senere 1:1:1. Tager ca. ${dur(rc.d1+rc.d2)} i alt ved ${f.temp} °C.</small>`; })():""}
     ${f.levain==="cold"?`<small>Brug surdejen direkte, hvis den er fodret inden for de sidste 4 dage. Dejen hæver ca. 40 % længere – men du sparer fodringen, når tiden er knap.</small>`:""}
     ${f.levain==="feed"?`<div class="seg" style="margin-top:8px">${[1,2,5,10].map(r=>`<button data-act="pf" data-k="ratio" data-v="${r}" aria-pressed="${f.ratio==r}">1:${r}:${r}<small>${dur(peakMin(r,f.temp))}</small></button>`).join("")}</div><small>Høje forhold er langsomme – godt hvis du fodrer om morgenen, før du går på arbejde.</small>`:""}</div>`:""}
   </div>
@@ -1513,6 +1594,8 @@ const A={
   nsPlan(el){ state.ns.plan=el.dataset.v; save(); renderAll(); toast("Skiftet til "+el.dataset.v+" dage"); },
   nsHyd(el){ state.ns.hyd=+el.dataset.v||null; save(); renderAll(); toast(state.ns.hyd?"Hydrering "+state.ns.hyd+" %":"Som kortet"); },
   nswClear(el){ if(state.ns&&state.ns.actual) delete state.ns.actual[el.dataset.k]; save(); renderAll(); },
+  nsLog(el){ const n=state.ns; n.log=n.log||{}; const d=nsDay(); n.log[d]=Object.assign({},n.log[d],{[el.dataset.f]:el.dataset.f==="s"?el.dataset.v:+el.dataset.v,t:Date.now()}); save(); renderAll(); },
+  refNeed(el){ state.refresh.need=+el.dataset.v; save(); refreshOut(); },
   nsStop(){ state.ns=null; save(); renderAll(); },
   waterSheet,
   invAdd(el){ const it=invItems()[+el.dataset.i]; it.kg=Math.max(0,Math.round(((it.kg||0)+(+el.dataset.v))*100)/100); save(); renderMel(); updBadge(); },
@@ -1533,11 +1616,11 @@ const A={
   step(el){
     const k=el.dataset.k, d=parseFloat(el.dataset.d);
     let v=Math.round((parseFloat(get(k))+d)*1000)/1000;
-    const lim={"bread.count":[1,20],"buns.count":[1,60],"feed.need":[10,2000],"feed.temp":[14,32],"pizza.count":[1,40],"pizza.weight":[150,500],"pizza.pfPct":[10,100],"bread.prepMin":[10,180],"buns.prepMin":[10,120],"pizza.prepMin":[10,120]};
+    const lim={"bread.count":[1,20],"buns.count":[1,60],"feed.need":[10,2000],"feed.temp":[14,32],"pizza.count":[1,40],"pizza.weight":[150,500],"pizza.pfPct":[10,100],"bread.prepMin":[10,180],"buns.prepMin":[10,120],"pizza.prepMin":[10,120],"refresh.need":[20,2000]};
     const [lo,hi]=lim[k]||[0,10000]; v=Math.min(hi,Math.max(lo,v));
     set(k,v); syncPizzaW(k); save();
     document.querySelectorAll(`[data-bind="${k}"]`).forEach(inp=>{ if(inp!==document.activeElement) inp.value=String(v).replace(".",","); });
-    if(k.startsWith("water.")||$("#waterOut")) waterOut(); else if(k.startsWith("feed.")) feedOut(); else calcOut();
+    if(k.startsWith("refresh.")) refreshOut(); else if(k.startsWith("water.")||$("#waterOut")) waterOut(); else if(k.startsWith("feed.")){ feedOut(); refreshOut(); } else calcOut();
   },
   ratio(el){ state.feed.ratio=+el.dataset.r; save(); renderStarter(); },
   logFeed(){ state.feeds.push({t:Date.now(),ratio:state.feed.ratio,temp:state.feed.temp}); if(state.feeds.length>60) state.feeds=state.feeds.slice(-60); save(); toast("Fodring gemt"); renderAll(); },
@@ -1599,13 +1682,14 @@ document.addEventListener("input",e=>{
     if(el.tagName==="SELECT"){ set(k,el.value); }
     else { const v=parseFloat(String(el.value).replace(",",".")); if(isNaN(v)) return; set(k,v); }
     syncPizzaW(k);
-    save(); if(k.startsWith("water.")||$("#waterOut")) waterOut(); else if(k.startsWith("feed.")) feedOut(); else calcOut();
+    save(); if(k.startsWith("refresh.")) refreshOut(); else if(k.startsWith("water.")||$("#waterOut")) waterOut(); else if(k.startsWith("feed.")){ feedOut(); refreshOut(); } else calcOut();
   }
 });
 document.addEventListener("change",e=>{
   const el=e.target;
   if(el.dataset.shape&&el.value!==""){ const kd=el.dataset.shape, x=SHAPES[kd][+el.value]; state[kd].weight=x[1]; save(); const i=document.querySelector(`[data-bind="${kd}.weight"]`); if(i) i.value=x[1]; calcOut(); toast(x[0]+": "+x[1]+" g"); return; }
   if(el.dataset.nsw){ const v=parseInt(el.value,10), n=state.ns; n.actual=n.actual||{}; if(v>0) n.actual[el.dataset.nsw]=v; else delete n.actual[el.dataset.nsw]; save(); renderAll(); toast(v>0?"Mængderne er tilpasset "+v+" g":"Nulstillet"); return; }
+  if(el.id==="refUse"){ const t=new Date(el.value).getTime(); if(!isNaN(t)){ ui.refUse=t; refreshOut(); } return; }
   if(el.id==="jarW"){ const v=parseInt(el.value,10); state.jarW=v>0?v:null; save(); renderAll(); return; }
   if(el.id==="pfHomeTime"&&el.value){ state.homeTime=el.value; save(); renderPlan(); return; }
   if(el.dataset.pf){
