@@ -1458,7 +1458,11 @@ function planVariants(f){
 }
 function levOptions(f){
   if(f.recipe==="pizza"&&f.leaven!=="surdej") return [{kind:"none"}];
-  const feeds=[1,2,5,10].map(r=>({kind:"feed",r}));
+  const feeds=[1,2,5,10].map(r=>({kind:"feed",r})), m=f.levMode||"auto";
+  if(m==="peak") return feeds;
+  if(m==="refresh"&&f.starter!=="active") return [{kind:"refresh"}];
+  if(m==="cold"&&f.starter!=="active") return [{kind:"cold"}];
+  if(m==="ready"&&f.starter==="active") return [{kind:"ready"}];
   return f.starter==="active"?[{kind:"ready"},...feeds]:[{kind:"refresh"},...feeds,{kind:"cold"}];
 }
 const levName=L=>L.kind==="refresh"?"Opfrisk i 2 trin":L.kind==="feed"?"Fodr 1:"+L.r+":"+L.r:L.kind==="cold"?"Surdej direkte fra køl":L.kind==="ready"?"Aktiv surdej":"";
@@ -1491,7 +1495,7 @@ function placeLev(f,L,S,earliest){
   if(L.kind==="ready") return S-earliest<=3*HOUR?{steps:[],pen:0}:null;
   if(L.kind==="feed"){
     const pk=peakMin(L.r,f.temp);
-    for(const w of [1,1.15,1.3,0.9]){ const t=Math.floor((S-Math.round(pk*w)*MIN)/(5*MIN))*5*MIN; if(allowedAt(t,earliest)){ const st=levainStep(Object.assign({},f,{ratio:L.r})); return {steps:[Object.assign({},st,{s:t,e:S,d:(S-t)/MIN})],pen:14+Math.abs(w-1)*20}; } }
+    for(const w of [1,1.15,0.9,1.3]){ const t=Math.floor((S-Math.round(pk*w)*MIN)/(5*MIN))*5*MIN; if(allowedAt(t,earliest)){ const st=levainStep(Object.assign({},f,{ratio:L.r})); const pkAt=t+pk*MIN; return {steps:[Object.assign({},st,{t:f.starter==="active"?"Fodr surdejen":"Fodr surdejen fra køleskabet",x:(f.starter==="active"?"":"Tag surdejen ud af køleskabet. ")+"Fodr 1:"+L.r+":"+L.r+" og stil den lunt. Den topper ca. kl. "+hm(pkAt)+" – "+(Math.abs(pkAt-S)<=20*MIN?"lige når dejen skal blandes.":"og er klar, når dejen skal blandes."),s:t,e:S,d:(S-t)/MIN})],pen:14+Math.abs(w-1)*20}; } }
     return null;
   }
   const rc=refreshCalc(levNeed(f.recipe)||210,f.temp), sc=F(f.temp)/F(20.5), rs=refreshSteps(f);
@@ -1561,7 +1565,8 @@ function actionsHtml(p,interactive){
   rows.forEach(({a,done,next})=>{
     const dk=dayKey(a.t);
     if(dk!==last){ last=dk; const d=new Date(a.t); html+=`<div style="margin:14px 0 4px;font-weight:700;font-family:var(--head)">${dayLabel(a.t).replace(/^./,c=>c.toUpperCase())} <small class="muted" style="font-weight:400">${d.toLocaleDateString("da-DK",{weekday:"long",day:"numeric",month:"short"})}</small></div>`; }
-    html+=`<div style="display:flex;gap:12px;align-items:baseline;padding:7px 10px;border-radius:10px;${next?"background:color-mix(in srgb,var(--accent) 22%,transparent);":""}${done?"opacity:.5;":""}"><b class="num" style="min-width:48px">${hm(a.t)}</b><span>${esc(a.fin?"Færdig – "+p.end:a.label)}${next?' <span class="tag" style="background:var(--accent);color:var(--accent-ink)">næste</span>':""}</span></div>`;
+    const canShift=interactive&&!a.sub&&!done;
+    html+=`<div style="display:flex;gap:12px;align-items:baseline;padding:7px 10px;border-radius:10px;${next?"background:color-mix(in srgb,var(--accent) 22%,transparent);":""}${done?"opacity:.5;":""}"><b class="num" style="min-width:48px">${hm(a.t)}</b><span style="flex:1">${esc(a.fin?"Færdig – "+p.end:a.label)}${next?' <span class="tag" style="background:var(--accent);color:var(--accent-ink)">næste</span>':""}</span>${canShift?`<button class="btn small ghost" style="min-height:34px;padding:4px 10px" data-act="shiftSheet" data-i="${a.i}">Udskyd</button>`:""}</div>`;
   });
   return html;
 }
@@ -1593,7 +1598,9 @@ function renderPlan(){
       ${f.mode!=="asap"?`<input type="datetime-local" id="poReady" style="margin-top:8px" value="${toLocalInput(f.ready)}">
       <div class="chips"><button class="btn small quiet" data-act="poReadyAt" data-d="1" data-h="8">I morgen 08:00</button><button class="btn small quiet" data-act="poReadyAt" data-d="1" data-h="18">I morgen 18:00</button><button class="btn small quiet" data-act="poReadyAt" data-d="2" data-h="10">Om 2 dage 10:00</button></div>`:""}</div>
     ${f.recipe==="pizza"?`<div class="field"><label>Hævemiddel</label><div class="seg"><button data-act="poSet" data-k="leaven" data-v="gaer" aria-pressed="${f.leaven!=="surdej"}">Gær</button><button data-act="poSet" data-k="leaven" data-v="surdej" aria-pressed="${f.leaven==="surdej"}">Surdej</button></div></div>`:""}
-    ${sour?`<div class="field"><label>Min surdej står</label><div class="seg"><button data-act="poSet" data-k="starter" data-v="fridge" aria-pressed="${f.starter!=="active"}">I køleskabet</button><button data-act="poSet" data-k="starter" data-v="active" aria-pressed="${f.starter==="active"}">Aktiv på bordet</button></div></div>`:""}
+    ${sour?`<div class="field"><label>Min surdej står</label><div class="seg"><button data-act="poSet" data-k="starter" data-v="fridge" aria-pressed="${f.starter!=="active"}">I køleskabet</button><button data-act="poSet" data-k="starter" data-v="active" aria-pressed="${f.starter==="active"}">Aktiv på bordet</button></div></div>
+    <div class="field"><label>Klargøring af surdejen</label><div class="seg">${(f.starter==="active"?[["auto","Automatisk"],["ready","Brug den nu"],["peak","Fodr til top"]]:[["auto","Automatisk"],["peak","Fodr til top"],["refresh","Opfrisk 2 trin"],["cold","Direkte"]]).map(([k,v])=>`<button data-act="poSet" data-k="levMode" data-v="${k}" aria-pressed="${(f.levMode||"auto")===k}">${v}</button>`).join("")}</div>
+      <small>${{auto:"Appen vælger det, der passer bedst med dine tider.",peak:"Surdejen fodres én gang, så den topper lige når dejen skal blandes. Appen vælger forholdet (1:1:1 til 1:10:10), så fodringen ikke falder i dine rolige timer.",refresh:"Kortets metode: 1:3:3 og 12–18 timer senere 1:1:1.",cold:"Surdejen bruges direkte fra køleskabet. Dejen hæver ca. 40 % længere.",ready:"Surdejen er ved toppen nu og bruges inden for 3 timer."}[f.levMode||"auto"]}</small></div>`:""}
     <details id="poMore"><summary>Flere indstillinger</summary><div class="dbody fields">
       <div class="field"><label for="poVar">Metode</label><select id="poVar"><option value="auto">Automatisk (anbefalet)</option>${Object.entries(T.variants).map(([k,v])=>`<option value="${k}" ${f.variant===k?"selected":""}>${v}</option>`).join("")}</select></div>
       <div class="field"><label>Køkkentemperatur</label><div class="stepper"><button data-act="poTemp" data-d="-1" aria-label="Koldere">−</button><input readonly value="${f.temp}" aria-label="Temperatur"><span class="unit">°C</span><button data-act="poTemp" data-d="1" aria-label="Varmere">+</button></div></div>
@@ -1793,7 +1800,26 @@ const A={
   pfPrep(el){ ui.form.prepMin=Math.min(180,Math.max(15,ui.form.prepMin+(+el.dataset.d))); renderPlan(); },
   pfStartAt(el){ ui.form.start=at(1,+el.dataset.h,0); fitReady(ui.form); renderPlan(); },
   pfTemp(el){ ui.form.temp=Math.min(32,Math.max(14,ui.form.temp+(+el.dataset.d))); renderPlan(); },
-  poSet(el){ const k=el.dataset.k, v=el.dataset.v; if(k==="recipe"){ const e=ui.form.earliest; ui.form=defaultForm(v); ui.form.earliest=e; } else { ui.form[k]=v; if(k==="prep"&&v!=="none"&&!(ui.form.prepMin>0)) ui.form.prepMin=30; } ui.pick=0; keepView(renderPlan); },
+  shiftSheet(el){
+    const p=state.plan, i=+el.dataset.i, st=p.steps[i], prev=p.steps[i-1];
+    const label=st?st.t:"Færdig", when=st?st.s:p.ready;
+    const eff=!prev?"":prev.k==="fridge"?"Køleskabstiden bliver tilsvarende længere – det giver bare lidt mere smag.":prev.k==="wait-flex"?"Hviletiden før bliver tilsvarende længere.":prev.lev?"Surdejen står lidt længere efter sin top – op til 2–3 timer er fint.":prev.k==="wait"?"Dejen hæver tilsvarende længere. Brug fingertesten, så den ikke overhæver.":prev.k==="oven"?"Bagetiden før bliver længere – tjek at det er det, du vil.":"Der bliver en pause før dette trin.";
+    openModal(`<h2>Udskyd</h2><p><b>${esc(label)}</b> · nu ${dayLabel(when)} kl. ${hm(when)}</p><p class="muted mini">Dette trin og alt efter flyttes. ${esc(eff)}</p>
+      <div class="quick" style="margin-top:12px">${[[15,"+15 min"],[30,"+30 min"],[60,"+1 time"],[120,"+2 timer"],[-15,"15 min tidligere"],[-30,"30 min tidligere"]].map(([m,l])=>`<button data-act="stepShift" data-i="${i}" data-min="${m}"><strong>${l}</strong><span>Ny tid ${hm(when+m*MIN)}</span></button>`).join("")}</div>
+      <div class="field" style="margin-top:14px"><label for="shiftCustom">Eget antal minutter</label><div class="row"><input id="shiftCustom" class="plain" inputmode="numeric" placeholder="fx 45" style="flex:1"><button class="btn" data-act="stepShiftCustom" data-i="${i}">Udskyd</button></div></div>
+      <button class="btn ghost wide" style="margin-top:14px" data-act="closeModal">Luk</button>`);
+  },
+  stepShiftCustom(el){ const v=parseInt(($("#shiftCustom").value||"").replace(",","."),10); if(v) A.stepShift({dataset:{i:el.dataset.i,min:v}}); },
+  stepShift(el){
+    const p=state.plan, i=+el.dataset.i, d=+el.dataset.min*MIN, prev=p.steps[i-1];
+    if(prev&&prev.e+d<prev.s+5*MIN){ toast("Så meget kan det ikke rykkes frem"); return; }
+    if(prev) prev.e+=d;
+    p.steps.forEach((x,j)=>{ if(j>=i){ x.s+=d; x.e+=d; if(x.subs) x.subs.forEach(sb=>sb.at+=d); } });
+    p.ready+=d; save(); closeModal(); renderAll();
+    const bad=actionTimes(p.steps,p.ready).filter(a=>!a.end&&a.i>=i&&inQuiet(a.t)).length;
+    toast(bad?"OBS: "+bad+" handling"+(bad>1?"er":"")+" falder nu i dine rolige timer":(d>0?"Udskudt "+dur(d/MIN):"Rykket "+dur(-d/MIN)+" frem"));
+  },
+  poSet(el){ const k=el.dataset.k, v=el.dataset.v; if(k==="recipe"){ const e=ui.form.earliest, lm=ui.form.levMode; ui.form=defaultForm(v); ui.form.earliest=e; ui.form.levMode=lm; } else { if(k==="starter") ui.form.levMode="auto"; ui.form[k]=v; if(k==="prep"&&v!=="none"&&!(ui.form.prepMin>0)) ui.form.prepMin=30; } ui.pick=0; keepView(renderPlan); },
   poReadyAt(el){ ui.form.ready=at(+el.dataset.d,+el.dataset.h,0); ui.form.mode="target"; ui.pick=0; keepView(renderPlan); },
   poTemp(el){ ui.form.temp=Math.min(32,Math.max(14,ui.form.temp+(+el.dataset.d))); ui.pick=0; keepView(renderPlan); },
   poEarly(el){ ui.form.earliest=el.dataset.v==="home"?nextAt(state.homeTime):round5(Date.now()); ui.pick=0; keepView(renderPlan); },
