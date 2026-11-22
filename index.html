@@ -524,7 +524,7 @@ function cardDays(n,isRef){
     const ref=R?R[key]:refs[key], a=act[key];
     const kPlan=Math.max(5,Math.round(M*ref.K/ref.P));
     const k=a?Math.min(a,kPlan):kPlan, out=Math.max(0,(a||M)-k); M=k;
-    return {k,f:k/ref.K,rem:out,plan:before,all:!!a&&a<=kPlan}; };
+    return {k,f:k/ref.K,rem:out,plan:kPlan,all:!!a&&a<=kPlan}; };
   const keepTxt=r=>r.all?"Behold alle "+r.k+" g surdej (kassér intet)":"Behold "+r.k+" g surdej (fjern ca. "+r.rem+" g)";
   const d=[];
   const f1=feed(100,30,35);
@@ -557,7 +557,7 @@ function nsList(){ const pl=state.ns&&state.ns.plan; return pl==="5"?NS_FAST:pl=
 function nsExtra(n,day,N){ return n.plan==="6"?cardDays(n).extra(day-N):NS_DAYS[7]; }
 function weighHtml(n,w){
   const a=(n.actual||{})[w.key];
-  return `<span style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><small style="margin:0">${a?"Din surdej vejede":"Vejer den ikke ca. "+w.plan+" g? Skriv vægten:"}</small><input data-nsw="${w.key}" class="plain" inputmode="numeric" placeholder="${w.plan}" value="${a||""}" style="width:96px;min-height:40px;padding:6px 10px;font-size:16px" aria-label="Surdejens vægt i gram"><small style="margin:0">g</small>${a?`<button class="btn small ghost" data-act="nswClear" data-k="${w.key}">Nulstil</button>`:""}</span>`;
+  return `<span style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><small style="margin:0">${a?"Du havde":"Har du ikke "+w.plan+" g? Vej det, du har, og skriv det her:"}</small><input data-nsw="${w.key}" class="plain" inputmode="numeric" placeholder="${w.plan}" value="${a||""}" style="width:96px;min-height:40px;padding:6px 10px;font-size:16px" aria-label="Surdejens vægt i gram"><small style="margin:0">g</small>${a?`<button class="btn small ghost" data-act="nswClear" data-k="${w.key}">Nulstil</button>`:""}</span>`;
 }
 function jarTxt(t){ const j=state.jarW; if(!j) return t; return t.replace(/Behold (?:alle )?(\d+) g( surdej)?( \((?:fjern ca\. \d+ g|kassér intet)\))?/,(m,g1)=>m+" – vægten skal vise "+(j+(+g1))+" g med glas"); }
 function nsLen(){ return nsList().length; }
