@@ -120,7 +120,8 @@ textarea{min-height:90px;resize:vertical}
 .seg{display:flex;flex-wrap:wrap;background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
 .seg button{flex:1 1 auto;min-width:auto;border:0;background:transparent;border-radius:11px;padding:8px 10px;font-weight:700;font-size:15px;line-height:1.2;color:var(--muted);min-height:44px;white-space:nowrap}
 .seg button small{display:block;font-weight:500;font-size:13px}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(43,33,27,.18)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.seg button[aria-pressed="true"] small{color:var(--accent-ink);opacity:.8}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
 
 /* Result sheet */
@@ -1489,13 +1490,17 @@ function actionTimes(steps,ready){
   A.push({t:ready,label:"Færdig",i:steps.length,fin:true});
   return A;
 }
+function feedAmounts(f,r){
+  const need=levNeed(f.recipe)||100, st=Math.max(5,Math.ceil(need*1.1/(1+2*r))), w=st*r, m=st*r;
+  return {st,w,m,tot:st+w+m,mel:f.recipe==="rye"?"fuldkornsrugmel":"hvedemel",wt:waterFor(DDT.feed,false,f.temp,0)};
+}
 function placeLev(f,L,S,earliest){
   if(L.kind==="none") return {steps:[],pen:0};
   if(L.kind==="cold") return {steps:[],pen:35};
   if(L.kind==="ready") return S-earliest<=3*HOUR?{steps:[],pen:0}:null;
   if(L.kind==="feed"){
     const pk=peakMin(L.r,f.temp);
-    for(const w of [1,1.15,0.9,1.3]){ const t=Math.floor((S-Math.round(pk*w)*MIN)/(5*MIN))*5*MIN; if(allowedAt(t,earliest)){ const st=levainStep(Object.assign({},f,{ratio:L.r})); const pkAt=t+pk*MIN; return {steps:[Object.assign({},st,{t:f.starter==="active"?"Fodr surdejen":"Fodr surdejen fra køleskabet",x:(f.starter==="active"?"":"Tag surdejen ud af køleskabet. ")+"Fodr 1:"+L.r+":"+L.r+" og stil den lunt. Den topper ca. kl. "+hm(pkAt)+" – "+(Math.abs(pkAt-S)<=20*MIN?"lige når dejen skal blandes.":"og er klar, når dejen skal blandes."),s:t,e:S,d:(S-t)/MIN})],pen:14+Math.abs(w-1)*20}; } }
+    for(const w of [1,1.15,0.9,1.3]){ const t=Math.floor((S-Math.round(pk*w)*MIN)/(5*MIN))*5*MIN; if(allowedAt(t,earliest)){ const st=levainStep(Object.assign({},f,{ratio:L.r})); const pkAt=t+pk*MIN; return {steps:[Object.assign({},st,{t:f.starter==="active"?"Fodr surdejen":"Fodr surdejen fra køleskabet",x:(f.starter==="active"?"":"Tag surdejen ud af køleskabet. ")+(()=>{ const a=feedAmounts(f,L.r); return "Fodr 1:"+L.r+":"+L.r+": "+a.st+" g surdej + "+a.w+" g vand (ca. "+a.wt+" °C) + "+a.m+" g "+a.mel+". Giver ca. "+a.tot+" g. Stil den lunt."; })()+" Den topper ca. kl. "+hm(pkAt)+" – "+(Math.abs(pkAt-S)<=20*MIN?"lige når dejen skal blandes.":"og er klar, når dejen skal blandes."),s:t,e:S,d:(S-t)/MIN})],pen:14+Math.abs(w-1)*20}; } }
     return null;
   }
   const rc=refreshCalc(levNeed(f.recipe)||210,f.temp), sc=F(f.temp)/F(20.5), rs=refreshSteps(f);
@@ -1600,7 +1605,7 @@ function renderPlan(){
     ${f.recipe==="pizza"?`<div class="field"><label>Hævemiddel</label><div class="seg"><button data-act="poSet" data-k="leaven" data-v="gaer" aria-pressed="${f.leaven!=="surdej"}">Gær</button><button data-act="poSet" data-k="leaven" data-v="surdej" aria-pressed="${f.leaven==="surdej"}">Surdej</button></div></div>`:""}
     ${sour?`<div class="field"><label>Min surdej står</label><div class="seg"><button data-act="poSet" data-k="starter" data-v="fridge" aria-pressed="${f.starter!=="active"}">I køleskabet</button><button data-act="poSet" data-k="starter" data-v="active" aria-pressed="${f.starter==="active"}">Aktiv på bordet</button></div></div>
     <div class="field"><label>Klargøring af surdejen</label><div class="seg">${(f.starter==="active"?[["auto","Automatisk"],["ready","Brug den nu"],["peak","Fodr til top"]]:[["auto","Automatisk"],["peak","Fodr til top"],["refresh","Opfrisk 2 trin"],["cold","Direkte"]]).map(([k,v])=>`<button data-act="poSet" data-k="levMode" data-v="${k}" aria-pressed="${(f.levMode||"auto")===k}">${v}</button>`).join("")}</div>
-      <small>${{auto:"Appen vælger det, der passer bedst med dine tider.",peak:"Surdejen fodres én gang, så den topper lige når dejen skal blandes. Appen vælger forholdet (1:1:1 til 1:10:10), så fodringen ikke falder i dine rolige timer.",refresh:"Kortets metode: 1:3:3 og 12–18 timer senere 1:1:1.",cold:"Surdejen bruges direkte fra køleskabet. Dejen hæver ca. 40 % længere.",ready:"Surdejen er ved toppen nu og bruges inden for 3 timer."}[f.levMode||"auto"]}</small></div>`:""}
+      <small>${{auto:"Appen vælger det, der passer bedst med dine tider.",peak:"Surdejen fodres én gang, så den topper lige når dejen skal blandes. Appen vælger forholdet (1:1:1 til 1:10:10), så fodringen ikke falder i dine rolige timer.",refresh:"Kortets metode: 1:3:3 og 12–18 timer senere 1:1:1.",cold:"Surdejen bruges direkte fra køleskabet. Dejen hæver ca. 40 % længere.",ready:"Surdejen er ved toppen nu og bruges inden for 3 timer."}[f.levMode||"auto"]}</small><div id="levResult"></div></div>`:""}
     <details id="poMore"><summary>Flere indstillinger</summary><div class="dbody fields">
       <div class="field"><label for="poVar">Metode</label><select id="poVar"><option value="auto">Automatisk (anbefalet)</option>${Object.entries(T.variants).map(([k,v])=>`<option value="${k}" ${f.variant===k?"selected":""}>${v}</option>`).join("")}</select></div>
       <div class="field"><label>Køkkentemperatur</label><div class="stepper"><button data-act="poTemp" data-d="-1" aria-label="Koldere">−</button><input readonly value="${f.temp}" aria-label="Temperatur"><span class="unit">°C</span><button data-act="poTemp" data-d="1" aria-label="Varmere">+</button></div></div>
@@ -1631,6 +1636,13 @@ function planPreview(){
   for(const c of res){ const k=c.variant+"|"+c.lev.kind; if(keys.has(k)) continue; keys.add(k); alts.push(c); if(alts.length>=3) break; }
   ui.planRes=alts; if(ui.pick==null||ui.pick>=alts.length) ui.pick=0;
   const c=alts[ui.pick], p=toPlan(c,f);
+  const lr=$("#levResult");
+  if(lr){ const ls=c.steps.filter(x=>x.lev), dough=c.steps.find(x=>!x.lev), L=c.lev; let m="";
+    if(L.kind==="feed"&&ls[0]){ const a=feedAmounts(f,L.r); m=`<b>Fodr 1:${L.r}:${L.r}</b> ${dayLabel(ls[0].s)} kl. <b>${hm(ls[0].s)}</b><div class="sheet num" style="margin:8px 0"><div class="line"><span>Surdej fra køleskabet</span><b>${a.st} g</b></div><div class="line"><span>Vand, ca. ${a.wt} °C</span><b>${a.w} g</b></div><div class="line"><span>${a.mel[0].toUpperCase()+a.mel.slice(1)}</span><b>${a.m} g</b></div><div class="line total"><span>Du får ca.</span><b>${a.tot} g</b></div></div>`; m+=`Topper ca. kl. ${hm(ls[0].s+peakMin(L.r,f.temp)*MIN)} – dejen blandes ${dayLabel(dough.s)} kl. ${hm(dough.s)}`; }
+    else if(L.kind==="refresh"&&ls.length===2){ const rc=refreshCalc(levNeed(f.recipe)||210,f.temp), mel=f.recipe==="rye"?"rugmel":"hvedemel", wt=waterFor(DDT.feed,false,f.temp,0); m=`<b>Trin 1 (1:3:3)</b> ${dayLabel(ls[0].s)} kl. <b>${hm(ls[0].s)}</b><div class="sheet num" style="margin:8px 0"><div class="line"><span>Surdej fra køleskabet</span><b>${rc.st} g</b></div><div class="line"><span>Vand, ca. ${wt} °C</span><b>${rc.a1} g</b></div><div class="line"><span>${mel[0].toUpperCase()+mel.slice(1)}</span><b>${rc.a1} g</b></div></div><b>Trin 2 (1:1:1)</b> ${dayLabel(ls[1].s)} kl. <b>${hm(ls[1].s)}</b><div class="sheet num" style="margin:8px 0"><div class="line"><span>Vand, ca. ${wt} °C</span><b>${rc.a2} g</b></div><div class="line"><span>${mel[0].toUpperCase()+mel.slice(1)}</span><b>${rc.a2} g</b></div><div class="line total"><span>Du får ca.</span><b>${rc.tot} g</b></div></div>Klar til dejen ${dayLabel(dough.s)} kl. ${hm(dough.s)}`; }
+    else if(L.kind==="cold") m=`Surdejen tages <b>direkte fra køleskabet</b> ${dayLabel(dough.s)} kl. <b>${hm(dough.s)}</b>`;
+    else if(L.kind==="ready") m=`Brug den aktive surdej ${dayLabel(dough.s)} kl. <b>${hm(dough.s)}</b>`;
+    lr.innerHTML=m?`<div class="ok" style="margin-top:8px"><span class="mini muted">Planen har valgt:</span><br>${m}</div>`:""; }
   const diff=f.mode!=="asap"?Math.round((c.ready-f.ready)/MIN):0;
   const eff=Math.max(round5(Date.now()),f.earliest||0), first=(c.steps.find(x=>!x.lev)||c.steps[0]).s, fx=c.steps.find(x=>x.flex);
   const startNote=f.mode!=="asap"&&first-eff>60*MIN?`<div class="note" style="margin-top:10px"><b>Hvorfor går du først i gang med dejen ${dayLabel(first)} kl. ${hm(first)}?</b><br>${(()=>{ const dough=c.steps.find(x=>!x.lev), lv=c.steps.filter(x=>x.lev); let r=""; if(lv.length) r+="Surdejen klargøres, så den er frisk, når dejen blandes "+dayLabel(dough.s)+" kl. "+hm(dough.s)+". "; if(fx) r+=esc(fx.t)+" må højst vare "+dur(fx.max)+" – starter du dejen tidligere, bliver den for gammel, inden den er klar "+dayLabel(c.ready)+" kl. "+hm(c.ready)+"."; else if(!lv.length) r="Planen starter så sent som muligt, så den rammer din klar-tid."; return r; })()}<br><button class="btn small quiet" style="margin-top:8px" data-act="poSet" data-k="mode" data-v="asap">Start så tidligt som muligt i stedet</button></div>`:"";
