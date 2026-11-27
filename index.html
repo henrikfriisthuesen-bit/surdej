@@ -1070,12 +1070,24 @@ function maltField(kind){
     ${b.maltType!=="none"?`<div style="margin-top:8px">${stepper(kind+".malt","Mængde","%",b.maltType==="aktiv"?0.1:0.5)}</div>`:""}
     <small>${b.maltType==="aktiv"?"Aktivt (diastatisk) maltmel giver mere farve på skorpen, lidt sødme og hjælper hævningen ved lang koldhævning. 0,3–1 % af melet.":b.maltType==="inaktiv"?"Inaktivt (ristet) maltmel giver mørkere krumme og en maltet smag. 1–3 % af melet.":"Valgfrit. Aktivt giver farve og hævekraft, inaktivt giver smag."}</small></div>`;
 }
-function hydDesc(kind,h,whole){
+function hydDesc(kind,h,whole,type){
   let t;
   if(kind==="bread") t=h<70?"Fast dej – nem at forme og god i brødform.":h<75?"God balance: åben krumme og stadig til at håndtere.":h<79?"Åben, saftig krumme. Kræver lidt øvelse i formning.":"Meget åben og klistret dej – til erfarne. Brug stærkt mel.";
   else if(kind==="buns") t=h<64?"Faste boller, lette at forme.":h<68?"Bløde boller med god form.":h<72?"Luftige boller – dejen er lidt klistret.":"Meget luftige, men svære at forme. Brug våde hænder.";
   else t=h<61?"Klassisk og nem at strække.":h<65?"Napolitansk standard.":h<69?"Blødere dej og mere luftig kant.":"Høj hydrering – kræver stærkt mel (fx Nuvola) og gerne fordej.";
-  if(whole>=20) t+=" Med "+whole+" % groft mel kan du roligt gå ca. "+Math.round(whole/10)+" % højere.";
+  if(kind==="pizza"||!(whole>0)) return t;
+  const key=kind+".hyd", base=kind==="bread"?75:69;
+  const btn=v=>v!==h?` <button class="btn small quiet" style="margin-top:6px" data-act="setv" data-k="${key}" data-v="${v}">Brug ${v} %</button>`:"";
+  if(type==="rugmel"&&whole>=10){
+    const down=Math.max(1,Math.round(whole/7)), sug=Math.min(h,base-down);
+    t+=`<br><b>Rugmel:</b> Med ${whole} % rug bliver dejen klistret og slap – rug binder vand, men danner næsten ingen gluten. Gå ca. ${down} % ned i forhold til normalt${h>sug?`, fx ${sug} %.`+btn(sug):". Det har du gjort – fint."}`;
+  } else if(type==="fuldkornsspelt"&&whole>=15){
+    const sug=Math.min(h,base-2);
+    t+=`<br><b>Spelt:</b> Spelt binder mindre vand og har en skrøbelig gluten. Gå ca. 2 % ned${h>sug?`, fx ${sug} %.`+btn(sug):". Det har du gjort – fint."}`;
+  } else if((type==="fuldkornshvede"||type==="grahamsmel"||type==="ølandshvede")&&whole>=20){
+    const up=Math.round(whole/10);
+    t+=` Med ${whole} % ${type==="grahamsmel"?"grahamsmel":type==="ølandshvede"?"ølandshvede":"fuldkornshvede"} kan du roligt gå ca. ${up} % højere – klien suger vand.`;
+  }
   return t;
 }
 const maltName=t=>t==="aktiv"?"Aktivt maltmel":"Inaktivt maltmel";
@@ -1216,7 +1228,7 @@ function calcOut(){
     const typeName={fuldkornshvede:"Fuldkornshvedemel",fuldkornsspelt:"Fuldkornsspelt",rugmel:"Fuldkornsrugmel",ølandshvede:"Ølandshvede"}[b.wholeType];
     lastUse=[["hvedemel",F_-coarse+st*2],[b.wholeType,coarse],["maltmel",F_*mp/100]];
     o.innerHTML=sheet([["Hvedemel",g(F_-coarse)+" g"],...(coarse>0?[[typeName,g(coarse)+" g"]]:[]),...(mp>0?[[maltName(b.maltType),gfmt(F_*mp/100)+" g"]]:[]),["Vand, ca. "+wT+" °C",g(F_*b.hyd/100)+" g"],["Aktiv surdej",g(lev)+" g"],["Salt",gfmt(F_*b.salt/100)+" g"],["Dej i alt",g(tot)+" g",1]])+
-      `<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("bread",b.hyd,b.whole)}<br>Samlet hydrering inkl. surdejen: ${totHyd.toFixed(1).replace(".",",")} %.${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.bread,"ca. "+wT+" °C")}<br>Surdej: fodr <b>${st} g</b> surdej med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand ca. ${dur(peakMin(2,state.feed.temp))} før du blander.</p>
+      `<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("bread",b.hyd,b.whole,b.wholeType)}<br>Samlet hydrering inkl. surdejen: ${totHyd.toFixed(1).replace(".",",")} %.${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.bread,"ca. "+wT+" °C")}<br>Surdej: fodr <b>${st} g</b> surdej med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand ca. ${dur(peakMin(2,state.feed.temp))} før du blander.</p>
       ${recHtml("bread")}${stagesHtml(splitDough("bread"))}
       <div class="row" style="margin-top:14px"><button class="btn" data-act="planFrom" data-r="bread">Planlæg dette brød</button>${useBtn()}</div>`;
   } else if(ui.calc==="buns"){
@@ -1230,7 +1242,7 @@ function calcOut(){
     L.push(["Vand, ca. "+wT+" °C",g(liq)+" g"]);
     L.push(["Aktiv surdej",g(lev)+" g"],["Salt",gfmt(F_*b.salt/100)+" g"]);
     L.push([b.count+" boller à "+b.weight+" g",g(tot)+" g",1]);
-    o.innerHTML=sheet(L)+`<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("buns",b.hyd,b.coarse)}${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.buns,"ca. "+wT+" °C")}<br>Bag ved <b>225 °C i 15–18 min</b>. Surdej: fodr <b>${st} g</b> med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand.${b.coarseType==="havregryn"&&coarse>0?" Det kogende vand til havregrynene tæller ikke med i væsken.":""}</p>
+    o.innerHTML=sheet(L)+`<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("buns",b.hyd,b.coarse,b.coarseType)}<br>Samlet hydrering inkl. surdejen: ${((F_*b.hyd/100+lev/2)/(F_+lev/2)*100).toFixed(1).replace(".",",")} %.${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.buns,"ca. "+wT+" °C")}<br>Bag ved <b>225 °C i 15–18 min</b>. Surdej: fodr <b>${st} g</b> med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand.${b.coarseType==="havregryn"&&coarse>0?" Det kogende vand til havregrynene tæller ikke med i væsken.":""}</p>
       ${recHtml("buns")}${stagesHtml(splitDough("buns"))}
       <div class="row" style="margin-top:14px"><button class="btn" data-act="planFrom" data-r="buns">Planlæg disse boller</button>${useBtn()}</div>`;
   }
