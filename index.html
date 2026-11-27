@@ -1124,11 +1124,11 @@ function getPrep(kind){
 }
 const fmtG=v=>gfmt(v)+" g";
 function splitDough(kind,prepOv,minOv){
-  const gp=getPrep(kind), prep=prepOv||gp.prep, min=minOv||gp.min, fam=famag();
+  const gp=getPrep(kind), prep=prepOv||gp.prep, min=minOv||gp.min, fam=famag()&&!famagSmall(kind);
   if(kind==="pizza"){
     const p=state.pizza; if(p.yt!=="surdej"&&p.pf!=="direkte") return null;
     const sour=p.yt==="surdej", r=pizzaCalc(p), F=r.F, W=F*p.hyd/100;
-    const wT=waterFor(DDT.pizza,sour,null,mixerFric(prep));
+    const wT=waterFor(DDT.pizza,sour,null,fam?mixerFric(prep):2);
     const res=Math.round(prep==="autolyse"?F*(p.hyd>=67?0.06:0.04):prep==="fermentolyse"?F*0.03:(p.hyd>=66?F*0.05:0));
     const fl=[FLOURS[p.flour]||"Mel",fmtG(F)], wat=["Vand, ca. "+wT+" °C",fmtG(W-res)];
     const lv=sour?["Aktiv surdej",fmtG(F*p.yeast/100)]:[p.yt==="tor"?"Tørgær":"Frisk gær",fmtG(F*p.yeast/100)];
@@ -1146,7 +1146,7 @@ function splitDough(kind,prepOv,minOv){
   const cp=kind==="bread"?b.whole:b.coarse, ct=kind==="bread"?b.wholeType:b.coarseType;
   const tn={fuldkornshvede:"Fuldkornshvedemel",fuldkornsspelt:"Fuldkornsspelt",rugmel:"Fuldkornsrugmel",ølandshvede:"Ølandshvede",grahamsmel:"Grahamsmel",havregryn:"Havregryn (skoldet)"}[ct];
   const coarse=F*cp/100, W=F*b.hyd/100;
-  const wT=waterFor(DDT[kind],true,null,mixerFric(prep));
+  const wT=waterFor(DDT[kind],true,null,fam?mixerFric(prep):2);
   const res=Math.round(prep==="autolyse"?F*(b.hyd>=76?0.06:0.04):prep==="fermentolyse"?F*0.03:(b.hyd>=74?F*0.05:0));
   const fl=[["Hvedemel",fmtG(F-coarse)],...(coarse>0?[[tn,fmtG(coarse)]]:[]),...(mp>0?[[maltName(b.maltType),fmtG(F*mp/100)]]:[])];
   const wat=["Vand, ca. "+wT+" °C",fmtG(W-res)], lv=["Aktiv surdej",fmtG(F*b.lev/100)], salt=["Salt",fmtG(F*b.salt/100)], rest=res?[["Resten af vandet",fmtG(res)]]:[];
@@ -1172,7 +1172,17 @@ function prepField(kind){
     <small>${gp.prep==="autolyse"?"Kun mel og vand hviler. Glutenet udvikler sig af sig selv, og dejen bliver smidigere.":gp.prep==="fermentolyse"?"Mel, vand og "+(kind==="pizza"&&state.pizza.yt!=="surdej"?"gær":"surdej")+" hviler uden salt. Hævningen er i gang med det samme.":"Alt blandes og æltes på én gang."}</small></div>`;
 }
 function mixerField(kind){
-  return `<div class="field"><label>Æltning</label><div class="seg"><button data-act="mixer" data-kind="${kind}" data-v="hand" aria-pressed="${!famag()}">I hånden</button><button data-act="mixer" data-kind="${kind}" data-v="famag" aria-pressed="${famag()}">Famag spiral</button></div>${famag()?`<small>Spiralen varmer dejen op, så vandet skal være koldere – det er regnet med. Får krogen ikke fat i dejen, er mængden for lille.</small>`:""}</div>`;
+  return `<div class="field"><label>Æltning</label><div class="seg"><button data-act="mixer" data-kind="${kind}" data-v="hand" aria-pressed="${!famag()}">I hånden</button><button data-act="mixer" data-kind="${kind}" data-v="famag" aria-pressed="${famag()}">Famag spiral</button></div>${famag()?`<small>Spiralen varmer dejen op, så vandet skal være koldere – det er regnet med.</small>
+    <div class="two" style="margin-top:8px;align-items:center"><small style="margin:0">Min Famag ælter godt fra</small><div style="display:flex;align-items:center;gap:6px"><input id="famagMin" class="plain" inputmode="numeric" value="${famagMin()}" style="min-height:42px;padding:6px 10px"><small style="margin:0">g dej</small></div></div>`:""}</div>`;
+}
+function famagMin(){ return state.famagMin||1200; }
+function doughTotal(kind){ const b=state[kind]; return b.count*b.weight; }
+function famagSmall(kind){ return famag()&&doughTotal(kind)<famagMin(); }
+function famagWarn(kind){
+  if(!famagSmall(kind)) return "";
+  const b=state[kind], tot=doughTotal(kind), n=Math.ceil(famagMin()/b.weight), unit=kind==="bread"?"brød":kind==="buns"?"boller":"pizzaer";
+  return `<div class="warn"><b>For lidt dej til Famag'en.</b> ${tot} g dej er under din grænse på ${famagMin()} g – krogen får ikke fat, og dejen kører bare rundt. Ælteanvisningerne herunder er derfor skiftet til hånden.
+    <div class="row" style="margin-top:8px"><button class="btn small" data-act="famagScale" data-kind="${kind}" data-n="${n}">Lav ${n} ${unit} i stedet</button><button class="btn small quiet" data-act="mixer" data-kind="${kind}" data-v="hand">Ælt i hånden</button></div></div>`;
 }
 function recHtml(kind){
   const r=recPrep(kind), gp=getPrep(kind);
@@ -1222,17 +1232,17 @@ function calcOut(){
   const o=$("#calcOut"); if(!o) return;
   if(ui.calc==="bread"){
     const b=state.bread, mp=b.maltType==="none"?0:b.malt, tot=b.count*b.weight, F_=tot/(1+b.hyd/100+b.lev/100+b.salt/100+mp/100);
-    const coarse=F_*b.whole/100, lev=F_*b.lev/100, wT=waterFor(DDT.bread,true,null,mixerFric(getPrep("bread").prep));
+    const coarse=F_*b.whole/100, lev=F_*b.lev/100, wT=waterFor(DDT.bread,true,null,(famagSmall("bread")?2:mixerFric(getPrep("bread").prep)));
     const totHyd=(F_*b.hyd/100+lev/2)/(F_+lev/2)*100;
     const st=Math.ceil(lev*1.1/5);
     const typeName={fuldkornshvede:"Fuldkornshvedemel",fuldkornsspelt:"Fuldkornsspelt",rugmel:"Fuldkornsrugmel",ølandshvede:"Ølandshvede"}[b.wholeType];
     lastUse=[["hvedemel",F_-coarse+st*2],[b.wholeType,coarse],["maltmel",F_*mp/100]];
     o.innerHTML=sheet([["Hvedemel",g(F_-coarse)+" g"],...(coarse>0?[[typeName,g(coarse)+" g"]]:[]),...(mp>0?[[maltName(b.maltType),gfmt(F_*mp/100)+" g"]]:[]),["Vand, ca. "+wT+" °C",g(F_*b.hyd/100)+" g"],["Aktiv surdej",g(lev)+" g"],["Salt",gfmt(F_*b.salt/100)+" g"],["Dej i alt",g(tot)+" g",1]])+
       `<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("bread",b.hyd,b.whole,b.wholeType)}<br>Samlet hydrering inkl. surdejen: ${totHyd.toFixed(1).replace(".",",")} %.${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.bread,"ca. "+wT+" °C")}<br>Surdej: fodr <b>${st} g</b> surdej med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand ca. ${dur(peakMin(2,state.feed.temp))} før du blander.</p>
-      ${recHtml("bread")}${stagesHtml(splitDough("bread"))}
+      ${famagWarn("bread")}${recHtml("bread")}${stagesHtml(splitDough("bread"))}
       <div class="row" style="margin-top:14px"><button class="btn" data-act="planFrom" data-r="bread">Planlæg dette brød</button>${useBtn()}</div>`;
   } else if(ui.calc==="buns"){
-    const b=state.buns, mp=b.maltType==="none"?0:b.malt, tot=b.count*b.weight, F_=tot/(1+(b.hyd+b.lev+b.salt+mp)/100), wT=waterFor(DDT.buns,true,null,mixerFric(getPrep("buns").prep));
+    const b=state.buns, mp=b.maltType==="none"?0:b.malt, tot=b.count*b.weight, F_=tot/(1+(b.hyd+b.lev+b.salt+mp)/100), wT=waterFor(DDT.buns,true,null,(famagSmall("buns")?2:mixerFric(getPrep("buns").prep)));
     const coarse=F_*b.coarse/100, liq=F_*b.hyd/100, lev=F_*b.lev/100, st=Math.ceil(lev*1.1/5);
     const typeName={grahamsmel:"Grahamsmel",fuldkornsspelt:"Fuldkornsspelt",havregryn:"Havregryn",rugmel:"Fuldkornsrugmel"}[b.coarseType];
     lastUse=[["hvedemel",F_-coarse+st*2],[b.coarseType,coarse],["maltmel",F_*mp/100]];
@@ -1243,7 +1253,7 @@ function calcOut(){
     L.push(["Aktiv surdej",g(lev)+" g"],["Salt",gfmt(F_*b.salt/100)+" g"]);
     L.push([b.count+" boller à "+b.weight+" g",g(tot)+" g",1]);
     o.innerHTML=sheet(L)+`<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("buns",b.hyd,b.coarse,b.coarseType)}<br>Samlet hydrering inkl. surdejen: ${((F_*b.hyd/100+lev/2)/(F_+lev/2)*100).toFixed(1).replace(".",",")} %.${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.buns,"ca. "+wT+" °C")}<br>Bag ved <b>225 °C i 15–18 min</b>. Surdej: fodr <b>${st} g</b> med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand.${b.coarseType==="havregryn"&&coarse>0?" Det kogende vand til havregrynene tæller ikke med i væsken.":""}</p>
-      ${recHtml("buns")}${stagesHtml(splitDough("buns"))}
+      ${famagWarn("buns")}${recHtml("buns")}${stagesHtml(splitDough("buns"))}
       <div class="row" style="margin-top:14px"><button class="btn" data-act="planFrom" data-r="buns">Planlæg disse boller</button>${useBtn()}</div>`;
   }
 }
@@ -1282,7 +1292,7 @@ function pizzaCalc(p,count){
   if(p.oil>0) extras.push(["Olivenolie",gfmt(F_*p.oil/100)+" g"]);
   if(p.sugar>0) extras.push(["Sukker",gfmt(F_*p.sugar/100)+" g"]);
   if(pf==="direkte"){
-    const L=[[fl,g(F_)+" g"],["Vand, ca. "+waterFor(DDT.pizza,sour,null,mixerFric(getPrep("pizza").prep))+" °C",g(W)+" g"]];
+    const L=[[fl,g(F_)+" g"],["Vand, ca. "+waterFor(DDT.pizza,sour,null,(famagSmall("pizza")?2:mixerFric(getPrep("pizza").prep)))+" °C",g(W)+" g"]];
     if(sour) L.push(["Aktiv surdej",g(F_*p.yeast/100)+" g"]); else L.push([yName,gfmt(F_*yeastPct/100)+" g"]);
     blocks.push({t:"Dejen",lines:[...L,...extras]});
   } else {
@@ -1360,8 +1370,8 @@ function pizzaOut(){
   lastUse=r.use;
   const p=state.pizza;
   o.innerHTML=r.blocks.map(b=>`<div class="blk"><h3>${b.t}</h3>${sheet(b.lines)}</div>`).join("")+
-    `<p class="note" style="margin-top:12px"><b>${p.hyd} % hydrering:</b> ${hydDesc("pizza",p.hyd,0)}${waterNote(DDT.pizza,"ca. "+waterFor(DDT.pizza,p.yt==="surdej"||p.pf!=="direkte",null,mixerFric(getPrep("pizza").prep))+" °C")}<br>${p.count} kugler à <b>${p.weight} g</b> giver ca. <b>${pizzaD(p.weight,(THICK[p.thick]||THICK.napoletana)[1])} cm</b> ${p.thick==="ny"?"New York-style":((THICK[p.thick]||THICK.napoletana)[0]).toLowerCase()} pizza. ${g(r.tot)} g dej i alt, heraf ${g(r.F)} g mel.${p.yt==="tor"?" Tørgær er ca. en tredjedel af frisk gær.":""}</p>
-    ${recHtml("pizza")}${stagesHtml(splitDough("pizza"))}
+    `<p class="note" style="margin-top:12px"><b>${p.hyd} % hydrering:</b> ${hydDesc("pizza",p.hyd,0)}${waterNote(DDT.pizza,"ca. "+waterFor(DDT.pizza,p.yt==="surdej"||p.pf!=="direkte",null,(famagSmall("pizza")?2:mixerFric(getPrep("pizza").prep)))+" °C")}<br>${p.count} kugler à <b>${p.weight} g</b> giver ca. <b>${pizzaD(p.weight,(THICK[p.thick]||THICK.napoletana)[1])} cm</b> ${p.thick==="ny"?"New York-style":((THICK[p.thick]||THICK.napoletana)[0]).toLowerCase()} pizza. ${g(r.tot)} g dej i alt, heraf ${g(r.F)} g mel.${p.yt==="tor"?" Tørgær er ca. en tredjedel af frisk gær.":""}</p>
+    ${famagWarn("pizza")}${recHtml("pizza")}${stagesHtml(splitDough("pizza"))}
     <div class="row" style="margin-top:14px"><button class="btn" data-act="pzPlanCalc">Planlæg denne dej</button>${useBtn()}</div>`;
 }
 
@@ -1771,6 +1781,7 @@ const A={
   pzPf(el){ state.pizza.pf=el.dataset.v; save(); renderPizza(); },
   useFlour,
   prep(el){ const b=state[el.dataset.kind], v=el.dataset.v, r=recPrep(el.dataset.kind); b.prep=v; b.prepMin=v==="none"?0:(r.prep===v?r.min:(v==="autolyse"&&el.dataset.kind==="bread"?45:30)); save(); el.dataset.kind==="pizza"?renderPizza():renderBrod(); },
+  famagScale(el){ const k=el.dataset.kind; state[k].count=+el.dataset.n; save(); k==="pizza"?renderPizza():renderBrod(); toast("Skaleret op til "+el.dataset.n); },
   usePrep(el){ const k=el.dataset.kind, r=recPrep(k); state[k].prep=r.prep; state[k].prepMin=r.min; save(); k==="pizza"?renderPizza():renderBrod(); },
   mixer(el){ state.mixer=el.dataset.v; state.water.fric=el.dataset.v==="famag"?8:2; save(); if(el.dataset.kind==="water") waterSheet(); else if(el.dataset.kind==="pizza") renderPizza(); else renderBrod(); },
   setv(el){ const k=el.dataset.k, v=+el.dataset.v; set(k,v); save(); document.querySelectorAll(`[data-bind="${k}"]`).forEach(i=>i.value=v); document.querySelectorAll(`[data-act="setv"][data-k="${k}"]`).forEach(b=>b.setAttribute("aria-pressed",b.dataset.v==v)); calcOut(); },
@@ -1909,6 +1920,7 @@ document.addEventListener("change",e=>{
   if(el.dataset.shape&&el.value!==""){ const kd=el.dataset.shape, x=SHAPES[kd][+el.value]; state[kd].weight=x[1]; save(); const i=document.querySelector(`[data-bind="${kd}.weight"]`); if(i) i.value=x[1]; calcOut(); toast(x[0]+": "+x[1]+" g"); return; }
   if(el.dataset.nsw){ const v=parseInt(el.value,10), n=state.ns; n.actual=n.actual||{}; if(v>0) n.actual[el.dataset.nsw]=v; else delete n.actual[el.dataset.nsw]; save(); renderAll(); toast(v>0?"Mængderne er tilpasset "+v+" g":"Nulstillet"); return; }
   if(el.id==="poReady"||el.id==="poEarliest"){ const t=new Date(el.value).getTime(); if(!isNaN(t)){ ui.form[el.id==="poReady"?"ready":"earliest"]=t; ui.pick=0; keepView(renderPlan); } return; }
+  if(el.id==="famagMin"){ const v=parseInt(el.value,10); state.famagMin=v>0?v:null; save(); calcOut(); return; }
   if(el.id==="poNeed"){ const v=parseInt(el.value,10); ui.form.needG=v>0?v:null; ui.pick=0; keepView(renderPlan); return; }
   if(el.id==="poVar"){ ui.form.variant=el.value; ui.pick=0; keepView(renderPlan); return; }
   if(el.id==="poQf"||el.id==="poQt"){ state.quiet=Object.assign(quietCfg(),{[el.id==="poQf"?"from":"to"]:+el.value}); save(); ui.pick=0; keepView(renderPlan); return; }
