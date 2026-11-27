@@ -628,12 +628,12 @@ const ui = { tab:"hjem", calc:"rcp", recipe:null, mult:1, form:null, pz:"styles"
 const RECIPES = [
   { id:"landbrod", type:"bread", name:"Landbrød", sub:"Klassisk hvedesurdejsbrød med sprød skorpe og åben krumme", yield:"1 brød", time:"Ca. 24 t inkl. nat i køl",
     ing:[["Hvedemel (gerne Manitoba eller ølandshvede)",400,"g"],["Fuldkornshvedemel",100,"g"],["Vand, 27 °C",375,"g"],["Aktiv surdej",100,"g"],["Salt",10,"g"]],
-    method:["Rør mel og 350 g af vandet sammen. Hvil 45 min (autolyse).","Tilsæt surdej, salt og resten af vandet. Klem det ind med våde hænder i 3–4 min.","Hæv ved stuetemperatur 4–5 t. Lav 4 sæt stræk og fold med 30 min mellemrum i de første 2 timer.","Når dejen er hævet 50–75 % og bobler i siderne: vend ud, forform til en kugle, hvil 30 min.","Slutform stramt og læg i en melet hævekurv med sømmen opad. Dæk til.","Koldhæv i køleskabet 12–16 t.","Forvarm ovnen med en støbejernsgryde til 250 °C i 45 min.","Vend brødet ud på bagepapir, skær en snitte. Bag 20 min med låg, derefter 20–25 min uden låg ved 230 °C.","Afkøl på rist mindst 1 time før du skærer."],
+    method:["Rør mel og 350 g af vandet sammen. Hvil 45 min (autolyse).","Tilsæt surdej, salt og resten af vandet. Klem det ind med våde hænder i 3–4 min.","Hæv ved stuetemperatur 4–5 t. Lav 4 sæt stræk og fold med 30 min mellemrum i de første 2 timer.","Når dejen er hævet 50–75 % og bobler i siderne: vend ud, forform til en kugle, hvil 30 min.","Slutform stramt og læg i en melet hævekurv med sømmen opad. Dæk til.","Koldhæv i køleskabet 12–16 t.","Læg bagestålet midt i ovnen og en tom bradepande nederst. Forvarm til 250 °C i 50–60 min.","Vend brødet ud på bagepapir, skær en snitte og skyd det ind på stålet. Hæld 1 dl kogende vand i bradepanden for damp. Bag 20 min, fjern bradepanden, og bag 20–25 min mere ved 230 °C.","Afkøl på rist mindst 1 time før du skærer."],
     tips:"Den lange koldhævning giver mere smag og gør dejen let at skære i. Mangler du en hævekurv, brug en skål med et melet viskestykke.",
     calc:{hyd:75,lev:20,salt:2,whole:20,wholeType:"fuldkornshvede",weight:985,count:1}, plan:{recipe:"bread",variant:"cold"} },
   { id:"spelt", type:"bread", name:"Grovt speltbrød", sub:"Nøddeagtig smag, lidt tættere krumme og hurtigere hævning", yield:"1 brød", time:"Ca. 20 t inkl. nat i køl",
     ing:[["Lys spelt",350,"g"],["Fuldkornsspelt",150,"g"],["Vand, 26 °C",340,"g"],["Aktiv surdej",100,"g"],["Salt",10,"g"]],
-    method:["Bland alt undtagen salt. Hvil 30 min.","Tilsæt salt og ælt kort, kun 2–3 min – spelt tåler ikke lang æltning.","Hæv 3,5–4 t med 3 sæt stræk og fold de første 1,5 t. Spelt hæver hurtigere end hvede, så hold øje.","Form og læg i hævekurv. Koldhæv 10–14 t.","Bag som landbrød: 250 °C med låg i 20 min, 230 °C uden låg i 20 min."],
+    method:["Bland alt undtagen salt. Hvil 30 min.","Tilsæt salt og ælt kort, kun 2–3 min – spelt tåler ikke lang æltning.","Hæv 3,5–4 t med 3 sæt stræk og fold de første 1,5 t. Spelt hæver hurtigere end hvede, så hold øje.","Form og læg i hævekurv. Koldhæv 10–14 t.","Bag som landbrød på bagestålet: 250 °C med damp i 20 min, derefter 230 °C uden damp i 20 min."],
     tips:"Spelt binder mindre vand end hvede. Start på 68 % hydrering, og gå først op når du kender dejen.",
     calc:{hyd:68,lev:20,salt:2,whole:30,wholeType:"fuldkornsspelt",weight:950,count:1}, plan:{recipe:"bread",variant:"cold"} },
   { id:"rugbrod", type:"rye", name:"Rugbrød med kerner", sub:"Dansk rugbrød over to dage – ingen æltning", yield:"1 form à 2 liter", time:"Ca. 1,5 døgn",
@@ -643,12 +643,12 @@ const RECIPES = [
     calc:null, plan:{recipe:"rye",variant:"std"} },
   { id:"morgenboller", type:"buns", name:"Morgenboller", sub:"Bløde, luftige boller koldhævet natten over", yield:"14 boller", time:"Bland i aften, bag i morgen",
     ing:[["Hvedemel",480,"g"],["Grahamsmel",120,"g"],["Koldt vand",420,"g"],["Aktiv surdej",150,"g"],["Salt",12,"g"]],
-    method:["Bland vand og surdej. Tilsæt mel og ælt 8–10 min til dejen er smidig (eller 6 min i maskine).","Tilsæt salt og ælt videre til dejen slipper skålen.","Hæv 3–3,5 t ved stuetemperatur med 2 sæt stræk og fold efter 30 og 60 min.","Del i 14 stykker à ca. 85 g og form stramme boller. Sæt dem på en plade med bagepapir.","Dæk med film og stil i køleskabet 8–12 t.","Om morgenen: Tænd ovnen på 225 °C. Lad bollerne stå på bordet imens (30 min).","Pensl med vand og drys evt. med frø. Bag 15–18 min."],
+    method:["Bland vand og surdej. Tilsæt mel og ælt 8–10 min til dejen er smidig (eller 6 min i maskine).","Tilsæt salt og ælt videre til dejen slipper skålen.","Hæv 3–3,5 t ved stuetemperatur med 2 sæt stræk og fold efter 30 og 60 min.","Del i 14 stykker à ca. 85 g og form stramme boller. Sæt dem på bagepapir, så de kan skydes ind på bagestålet.","Dæk med film og stil i køleskabet 8–12 t.","Om morgenen: Forvarm ovnen med bagestålet til 250 °C i 45 min. Lad bollerne stå på bordet imens.","Skyd bollerne ind på stålet, skru ned på 230 °C, og bag 12–15 min. Stålet giver meget undervarme, så de bages hurtigere end på plade."],
     tips:"Bollerne kan bages direkte fra køleskabet. Vil du have dem ekstra luftige, så lad dem stå 45–60 min på bordet i stedet for 30.",
     calc:{count:14,weight:85,hyd:70,lev:25,salt:2,honey:0,oil:0,coarse:20,coarseType:"grahamsmel",liquid:"vand"}, plan:{recipe:"buns",variant:"evening"} },
   { id:"havreboller", type:"buns", name:"Grove havreboller", sub:"Saftige boller med skoldede havregryn og frø", yield:"12 boller", time:"Bland i aften, form i morgen",
     ing:[["Havregryn",75,"g"],["Kogende vand (til havregryn)",150,"g"],["Hvedemel",350,"g"],["Fuldkornshvedemel",100,"g"],["Koldt vand",220,"g"],["Aktiv surdej",120,"g"],["Salt",10,"g"],["Græskar- og solsikkekerner",60,"g"]],
-    method:["Hæld kogende vand over havregrynene og lad dem køle af (ca. 20 min).","Bland alt undtagen salt og kerner. Ælt 6–8 min.","Tilsæt salt og kerner og ælt til dejen hænger sammen. Den er lidt klistret – det skal den være.","Hæv 2 t ved stuetemperatur med 2 sæt stræk og fold. Dæk skålen og stil den i køleskabet natten over.","Om morgenen: Vend den kolde dej ud og form 12 boller. Kold dej er nem at forme.","Lad dem hæve 1 t. Tænd ovnen på 225 °C efter 30 min.","Bag 18–20 min."],
+    method:["Hæld kogende vand over havregrynene og lad dem køle af (ca. 20 min).","Bland alt undtagen salt og kerner. Ælt 6–8 min.","Tilsæt salt og kerner og ælt til dejen hænger sammen. Den er lidt klistret – det skal den være.","Hæv 2 t ved stuetemperatur med 2 sæt stræk og fold. Dæk skålen og stil den i køleskabet natten over.","Om morgenen: Vend den kolde dej ud og form 12 boller. Kold dej er nem at forme.","Lad dem hæve 1 t. Forvarm ovnen med bagestålet til 250 °C i 45 min imens.","Skyd dem ind på stålet, skru ned på 230 °C, og bag 14–16 min."],
     tips:"Skoldede havregryn holder på fugten, så bollerne er gode også dagen efter.",
     calc:{count:12,weight:95,hyd:72,lev:25,salt:2,honey:0,oil:0,coarse:25,coarseType:"havregryn",liquid:"vand"}, plan:{recipe:"buns",variant:"morning"} }
 ];
@@ -782,9 +782,9 @@ function stepsFor(o){
       {t:"Forform og lad hvile",d:30,k:"act",x:(state.bread.count>1?"Del dejen i "+state.bread.count+" stykker à "+state.bread.weight+" g. ":"Dejen vejer ca. "+state.bread.weight+" g. ")+"Form løst til en kugle og hvil udækket."},
       {t:"Slutform og læg i hævekurv",d:10,k:"act",x:"Stram overfladen. Drys kurven med rismel. Sømmen opad."}];
     const bake=[
-      {t:"Forvarm ovn og gryde til 250 °C",d:45,k:"oven",x:o.variant==="cold"?"Brødet bliver i køleskabet imens.":"Brødet hæver færdigt imens."},
-      {t:"Bag med låg, 250 °C",d:20,k:"oven",x:"Vend brødet ud på bagepapir, skær en snitte og læg det i gryden."},
-      {t:"Bag uden låg, 230 °C",d:22,k:"oven",x:"Til skorpen er mørk gyldenbrun. Kernetemperatur 96–98 °C."}];
+      {t:"Forvarm ovn og bagestål til 250 °C",d:50,k:"oven",x:(o.variant==="cold"?"Brødet bliver i køleskabet imens.":"Brødet hæver færdigt imens.")+" Stil en tom bradepande nederst i ovnen til damp."},
+      {t:"Bag med damp, 250 °C",d:20,k:"oven",x:"Vend brødet ud på bagepapir, skær en snitte og skyd det ind på stålet. Hæld 1 dl kogende vand i bradepanden."},
+      {t:"Bag uden damp, 230 °C",d:22,k:"oven",x:"Fjern bradepanden. Bag til skorpen er mørk gyldenbrun. Kernetemperatur 96–98 °C."}];
     if(o.variant==="cold") return [...base,{t:"Koldhævning i køleskab",flex:true,min:8*60,ideal:[12*60,16*60],max:36*60,k:"fridge",x:"Dæk til. Jo længere, jo mere syrlig smag."},...bake];
     return [...base,{t:"Slutkævning ved stuetemperatur",d:Math.max(30,r(90*f)-45),k:"wait",x:"Fingertest: et let tryk skal fjedre langsomt tilbage."},...bake];
   }
@@ -797,13 +797,13 @@ function stepsFor(o){
       {t:"Hævning ved stuetemperatur",d:r(120*f),k:"wait",subs:[30,60].map((m,i)=>({m,t:"Stræk og fold "+(i+1)})),x:"Dejen skal være kommet godt i gang, men ikke færdighævet."},
       {t:"Dejen i køleskab i skålen",flex:true,min:6*60,ideal:[8*60,14*60],max:18*60,k:"fridge",x:"Dæk skålen til. Dejen hæver langsomt færdig."},
       {t:"Form bollerne",d:15,k:"act",x:"Del i "+state.buns.count+" stykker à "+state.buns.weight+" g. Kold dej er nem at forme."},
-      {t:"Efterhævning – tænd ovnen på 225 °C efter 30 min",d:60,k:"wait",x:"Dæk med et viskestykke."},
-      {t:"Pensl og bag, 225 °C",d:17,k:"oven",x:"Til de er gyldne og lyder hule når du banker under dem."}];
+      {t:"Efterhævning – forvarm ovn og bagestål til 250 °C med det samme",d:60,k:"wait",x:"Dæk med et viskestykke. Stålet skal have mindst 45 min."},
+      {t:"Bag på bagestålet, 230 °C",d:14,k:"oven",x:"Skyd bollerne ind på stålet på bagepapiret. 12–15 min, til de er gyldne og lyder hule, når du banker under dem."}];
     const bulk={t:"Hævning med stræk og fold",d:r(210*f),k:"wait",subs:[30,60].map((m,i)=>({m,t:"Stræk og fold "+(i+1)})),x:"Klar når dejen er hævet ca. 75 % og føles luftig."};
-    const shape={t:"Form bollerne",d:20,k:"act",x:"Del i "+state.buns.count+" stykker à "+state.buns.weight+" g. Form stramme boller og sæt dem på plade. Dæk med film."};
-    const bake=[{t:"Tænd ovnen på 225 °C",d:30,k:"oven",x:o.variant==="evening"?"Tag bollerne ud af køleskabet og lad dem stå på bordet imens.":"Bollerne hæver færdigt imens."},
-      {t:"Pensl og bag, 225 °C",d:17,k:"oven",x:"Til de er gyldne og lyder hule når du banker under dem."}];
-    if(o.variant==="evening") return [...L,...mixA,bulk,shape,{t:"Koldhævning i køleskab",flex:true,min:6*60,ideal:[8*60,12*60],max:16*60,k:"fridge",x:"Pladen med bollerne, tildækket."},...bake];
+    const shape={t:"Form bollerne",d:20,k:"act",x:"Del i "+state.buns.count+" stykker à "+state.buns.weight+" g. Form stramme boller og sæt dem på bagepapir. Dæk med film."};
+    const bake=[{t:"Forvarm ovn og bagestål til 250 °C",d:45,k:"oven",x:o.variant==="evening"?"Tag bollerne ud af køleskabet og lad dem stå på bordet imens.":"Bollerne hæver færdigt imens."},
+      {t:"Bag på bagestålet, 230 °C",d:14,k:"oven",x:"Skyd bollerne ind på stålet på bagepapiret. 12–15 min, til de er gyldne og lyder hule, når du banker under dem."}];
+    if(o.variant==="evening") return [...L,...mixA,bulk,shape,{t:"Koldhævning i køleskab",flex:true,min:6*60,ideal:[8*60,12*60],max:16*60,k:"fridge",x:"Bollerne på bagepapiret, tildækket."},...bake];
     return [...L,...mixA,bulk,shape,{t:"Efterhævning",d:Math.max(30,r(90*f)-30),k:"wait",x:"Fingertest: et let tryk skal fjedre langsomt tilbage."},...bake];
   }
   // rye
@@ -1252,7 +1252,7 @@ function calcOut(){
     L.push(["Vand, ca. "+wT+" °C",g(liq)+" g"]);
     L.push(["Aktiv surdej",g(lev)+" g"],["Salt",gfmt(F_*b.salt/100)+" g"]);
     L.push([b.count+" boller à "+b.weight+" g",g(tot)+" g",1]);
-    o.innerHTML=sheet(L)+`<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("buns",b.hyd,b.coarse,b.coarseType)}<br>Samlet hydrering inkl. surdejen: ${((F_*b.hyd/100+lev/2)/(F_+lev/2)*100).toFixed(1).replace(".",",")} %.${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.buns,"ca. "+wT+" °C")}<br>Bag ved <b>225 °C i 15–18 min</b>. Surdej: fodr <b>${st} g</b> med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand.${b.coarseType==="havregryn"&&coarse>0?" Det kogende vand til havregrynene tæller ikke med i væsken.":""}</p>
+    o.innerHTML=sheet(L)+`<p class="note" style="margin-top:12px"><b>${b.hyd} % hydrering:</b> ${hydDesc("buns",b.hyd,b.coarse,b.coarseType)}<br>Samlet hydrering inkl. surdejen: ${((F_*b.hyd/100+lev/2)/(F_+lev/2)*100).toFixed(1).replace(".",",")} %.${b.maltType==="aktiv"&&b.malt>1?"<br>Over 1 % aktivt maltmel kan give en klistret krumme.":""}${waterNote(DDT.buns,"ca. "+wT+" °C")}<br>Bag på bagestål: forvarm til <b>250 °C i 45 min</b>, skru ned på <b>230 °C</b> og bag <b>12–15 min</b>. Surdej: fodr <b>${st} g</b> med <b>${st*2} g</b> mel og <b>${st*2} g</b> vand.${b.coarseType==="havregryn"&&coarse>0?" Det kogende vand til havregrynene tæller ikke med i væsken.":""}</p>
       ${famagWarn("buns")}${recHtml("buns")}${stagesHtml(splitDough("buns"))}
       <div class="row" style="margin-top:14px"><button class="btn" data-act="planFrom" data-r="buns">Planlæg disse boller</button>${useBtn()}</div>`;
   }
@@ -1741,7 +1741,7 @@ function timerSheet(){
     ${t?`<p class="ok">Kører: ${esc(t.label)} – færdig kl. ${hm(t.end)}</p><button class="btn ghost wide" data-act="timerStop">Stop timeren</button><hr>`:""}
     <p class="muted">Holder øje mens appen er åben. Skærmen kan holdes tændt fra Hjem.</p>
     <div class="quick" style="margin-top:12px">
-      ${[[30,"Stræk og fold"],[45,"Hvile / autolyse"],[20,"Bag med låg"],[17,"Boller i ovnen"],[60,"Afkøling"],[5,"Kort hvile"]].map(([m,l])=>`<button data-act="timerStart" data-min="${m}" data-label="${l}"><strong>${m} min</strong><span>${l}</span></button>`).join("")}
+      ${[[30,"Stræk og fold"],[45,"Hvile / autolyse"],[20,"Bag med damp"],[17,"Boller i ovnen"],[60,"Afkøling"],[5,"Kort hvile"]].map(([m,l])=>`<button data-act="timerStart" data-min="${m}" data-label="${l}"><strong>${m} min</strong><span>${l}</span></button>`).join("")}
     </div>
     <div class="field" style="margin-top:14px"><label for="tCustom">Eget antal minutter</label><div class="row"><input id="tCustom" class="plain" inputmode="numeric" placeholder="fx 25" style="flex:1"><button class="btn" data-act="timerCustom">Start</button></div></div>
     <button class="btn ghost wide" style="margin-top:14px" data-act="closeModal">Luk</button>`);
